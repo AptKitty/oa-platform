@@ -1,6 +1,7 @@
 package com.oa;
 
 import com.formdev.flatlaf.FlatLightLaf;
+import java.awt.Font;
 import com.oa.ui.frame.LoginFrame;
 
 import javax.swing.*;
@@ -12,6 +13,10 @@ import javax.swing.*;
 public class Application {
 
     public static void main(String[] args) {
+        // 全局默认字体，解决中文乱码问题
+        Font globalFont = new Font("Microsoft YaHei", Font.PLAIN, 13);
+        UIManager.put("defaultFont", globalFont);
+
         // 设置 FlatLaf 现代化主题
         try {
             UIManager.setLookAndFeel(new FlatLightLaf());

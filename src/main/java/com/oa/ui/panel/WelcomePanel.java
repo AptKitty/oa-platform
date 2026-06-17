@@ -60,40 +60,40 @@ public class WelcomePanel extends BasePanel {
         JPanel cardGrid = new JPanel(new GridLayout(2, 3, 20, 20));
 
         pendingApprovalLabel = createNumLabel();
-        pendingCard = createCard("\uD83D\uDCCB 待审批", pendingApprovalLabel, "条待审批任务", "去审批 →");
+        pendingCard = createCard("待审批", pendingApprovalLabel, "条待审批任务", "去审批 →");
         pendingCard.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) { switchTo("APPROVAL"); }
         });
         cardGrid.add(pendingCard);
 
         unreadMsgLabel = createNumLabel();
-        unreadCard = createCard("\uD83D\uDCEC 未读消息", unreadMsgLabel, "条未读消息", "查看消息 →");
+        unreadCard = createCard("未读消息", unreadMsgLabel, "条未读消息", "查看消息 →");
         unreadCard.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) { switchTo("MESSAGE"); }
         });
         cardGrid.add(unreadCard);
 
         todayScheduleLabel = createNumLabel();
-        scheduleCard = createCard("\uD83D\uDCC5 今日日程", todayScheduleLabel, "项目程安排", "查看日程 →");
+        scheduleCard = createCard("今日日程", todayScheduleLabel, "项目程安排", "查看日程 →");
         scheduleCard.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) { switchTo("SCHEDULE"); }
         });
         cardGrid.add(scheduleCard);
 
         myTaskLabel = createNumLabel();
-        taskCard = createCard("\u2705 我的任务", myTaskLabel, "个待办任务", "查看任务 →");
+        taskCard = createCard("我的任务", myTaskLabel, "个待办任务", "查看任务 →");
         taskCard.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) { switchTo("TASK"); }
         });
         cardGrid.add(taskCard);
 
-        quickApplyCard = createCard("\uD83D\uDCDD 快捷审批", new JLabel(""), "发起请假/报销/出差...", "发起审批 →");
+        quickApplyCard = createCard("快捷审批", new JLabel(""), "发起请假/报销/出差...", "发起审批 →");
         quickApplyCard.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) { switchTo("APPLY"); }
         });
         cardGrid.add(quickApplyCard);
 
-        noticeCard = createCard("\uD83D\uDCE2 发布公告", new JLabel(""), "向全员发布通知公告", "发布公告 →");
+        noticeCard = createCard("发布公告", new JLabel(""), "向全员发布通知公告", "发布公告 →");
         noticeCard.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) { switchTo("NOTICE"); }
         });
@@ -103,7 +103,7 @@ public class WelcomePanel extends BasePanel {
 
         // === 底部提示 ===
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        footer.add(new JLabel("\uD83D\uDCA1 提示: 点击左侧导航栏切换功能模块 | 卡片可点击直达"));
+        footer.add(new JLabel("提示: 点击左侧导航栏切换功能模块 | 卡片可点击直达"));
         footer.setForeground(Color.GRAY);
         add(footer, BorderLayout.SOUTH);
     }

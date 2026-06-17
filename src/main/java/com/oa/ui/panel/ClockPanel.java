@@ -179,6 +179,7 @@ public class ClockPanel extends BasePanel {
         } catch (Exception e) {
             showError("打卡异常：" + e.getMessage());
         }
+        });
     }
 
     /** 下班打卡 */
@@ -197,6 +198,7 @@ public class ClockPanel extends BasePanel {
         } catch (Exception e) {
             showError("打卡异常：" + e.getMessage());
         }
+        });
     }
 
     // ====== 打卡记录加载 ======

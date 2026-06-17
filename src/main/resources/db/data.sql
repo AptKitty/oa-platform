@@ -16,6 +16,13 @@ INSERT INTO sys_dept (id, parent_id, dept_name, dept_code, sort_order, status) V
 -- ==================== 用户: admin/admin ====================
 -- 密码 MD5("admin") = 21232f297a57a5a743894a0e4a801fc3
 
+-- 补充审批人用户（对应 init_data.sql 中的 approver_id=2~6，密码均为 123456）
+INSERT INTO sys_user (id, username, password, real_name, phone, email, dept_id, position, status) VALUES
+(2, 'zhangjl', 'e10adc3949ba59abbe56e057f20f883e', '张经理', '13800000002', 'zhangjl@oa.com', 2, '部门经理', 1),
+(3, 'lizj',    'e10adc3949ba59abbe56e057f20f883e', '李总监', '13800000003', 'lizj@oa.com',   1, '技术总监', 1),
+(4, 'wanghr',  'e10adc3949ba59abbe56e057f20f883e', '王HR',   '13800000004', 'wanghr@oa.com', 5, '人事专员', 1),
+(5, 'zhaocw',  'e10adc3949ba59abbe56e057f20f883e', '赵财务', '13800000005', 'zhaocw@oa.com', 4, '财务专员', 1),
+(6, 'sunxz',   'e10adc3949ba59abbe56e057f20f883e', '孙行政', '13800000006', 'sunxz@oa.com',  5, '行政专员', 1);
 INSERT INTO sys_user (id, username, password, real_name, phone, email, dept_id, position, status) VALUES
 (1, 'admin', '21232f297a57a5a743894a0e4a801fc3', '系统管理员', '13800000000', 'admin@oa.com', 1, '系统管理员', 1);
 
@@ -32,6 +39,13 @@ INSERT INTO sys_role (id, role_name, role_code, description, status) VALUES
 
 INSERT INTO sys_user_role (user_id, role_id) VALUES (1, 1);
 
+-- 给审批人用户分配角色（对应 init_data.sql 的审批节点）
+INSERT INTO sys_user_role (user_id, role_id) VALUES
+(2, 2),  -- 张经理 → 部门经理
+(3, 2),  -- 李总监 → 部门经理
+(4, 4),  -- 王HR   → 人事专员
+(5, 5),  -- 赵财务 → 财务专员
+(6, 4);  -- 孙行政 → 人事专员
 -- ==================== 菜单权限: 全部 ====================
 -- 一级菜单 (parent_id=0)
 

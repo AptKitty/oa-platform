@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import com.oa.common.PageResult;
 
 /**
  * 公告面板 — 公告列表 / 发布 / 详情 / 已读追踪
@@ -80,10 +81,10 @@ public class NoticePanel extends BasePanel {
 
     private void loadNotices(String keyword) {
         try {
-            List<Notice> notices = noticeService.findByPage(
+            PageResult<Notice> result = noticeService.findByPage(
                     (keyword == null || keyword.isEmpty()) ? null : keyword, 1, 100);
             tableModel.setRowCount(0);
-            for (Notice n : notices) {
+            for (Notice n : result.getRows()) {
                 int readCount = noticeService.getReadCount(n.getId());
                 int totalUsers = 10;
                 int unreadCount = Math.max(0, totalUsers - readCount);

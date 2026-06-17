@@ -54,6 +54,17 @@ public abstract class BasePanel extends JPanel {
         return toolbar;
     }
 
+    /** 在后台线程执行数据库/耗时操作，避免阻塞 UI */
+    protected void runAsync(Runnable bgTask) {
+        new Thread(() -> {
+            try {
+                bgTask.run();
+            } catch (Exception ex) {
+                SwingUtilities.invokeLater(() -> showError(ex.getMessage()));
+            }
+        }).start();
+    }
+
     protected void clearTable(JTable table) {
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         model.setRowCount(0);

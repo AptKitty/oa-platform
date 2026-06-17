@@ -1,3 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.oa.admin.dao.AdminDao"><!-- TODO --></mapper>
+<!--
+ 会议室相关 SQL 已在 AssetMapper.xml 中实现（共用 AdminDao 命名空间）
+ 此文件仅用于满足 mybatis-config.xml 注册，请勿重复添加 SQL
+ 成员4 负责
+-->
+<mapper namespace="com.oa.admin.dao.AdminDao">
+    <!-- 会议室 CRUD / 预约 / 时间冲突检测 → 见 AssetMapper.xml -->
+</mapper>

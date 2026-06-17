@@ -1,3 +1,109 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.oa.im.dao.ImDao"><!-- TODO: IM模块增量开发时实现 --></mapper>
+<!--
+ IM 即时通讯 Mapper XML
+ 对应 DAO: com.oa.im.dao.ImDao
+ 负责会话(im_conversation)、会话成员(im_conversation_member)、消息(im_message)
+ 成员1 负责（预留模块，前端未接入）
+-->
+<mapper namespace="com.oa.im.dao.ImDao">
+
+    <!-- ==================== 会话 Conversation ==================== -->
+    <resultMap id="ConversationMap" type="com.oa.im.entity.Conversation">
+        <id column="id" property="id"/>
+        <result column="conversation_type" property="conversationType"/>
+        <result column="group_name" property="groupName"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="findConversationById" resultMap="ConversationMap">
+        SELECT * FROM im_conversation WHERE id = #{id}
+    </select>
+
+    <!-- 查询某人参与的所有会话（包含私聊和群聊） -->
+    <select id="findConversationsByUserId" resultMap="ConversationMap">
+        SELECT c.* FROM im_conversation c
+        INNER JOIN im_conversation_member m ON c.id = m.conversation_id
+        WHERE m.user_id = #{userId}
+        ORDER BY c.create_time DESC
+    </select>
+
+    <!-- 查找两个用户之间的私聊会话 -->
+    <select id="findPrivateConversation" resultType="long">
+        SELECT c.id FROM im_conversation c
+        WHERE c.conversation_type = 'PRIVATE'
+          AND c.id IN (SELECT conversation_id FROM im_conversation_member WHERE user_id = #{user1})
+          AND c.id IN (SELECT conversation_id FROM im_conversation_member WHERE user_id = #{user2})
+        LIMIT 1
+    </select>
+
+    <insert id="createConversation" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO im_conversation(conversation_type, group_name, creator_id)
+        VALUES(#{conversationType}, #{groupName}, #{creatorId})
+    </insert>
+
+    <insert id="addMember">
+        INSERT INTO im_conversation_member(conversation_id, user_id)
+        VALUES(#{conversationId}, #{userId})
+    </insert>
+
+    <delete id="removeMember">
+        DELETE FROM im_conversation_member
+        WHERE conversation_id = #{conversationId} AND user_id = #{userId}
+    </delete>
+
+    <select id="getMemberIds" resultType="long">
+        SELECT user_id FROM im_conversation_member WHERE conversation_id = #{conversationId}
+    </select>
+
+    <!-- ==================== 消息 ImMessage ==================== -->
+    <resultMap id="MessageMap" type="com.oa.im.entity.ImMessage">
+        <id column="id" property="id"/>
+        <result column="conversation_id" property="conversationId"/>
+        <result column="sender_id" property="senderId"/>
+        <result column="content_type" property="contentType"/>
+        <result column="content" property="content"/>
+        <result column="send_time" property="sendTime"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <insert id="insertMessage" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO im_message(conversation_id, sender_id, content_type, content, status)
+        VALUES(#{conversationId}, #{senderId}, #{contentType}, #{content}, #{status})
+    </insert>
+
+    <!-- 分页查询会话消息，按发送时间倒序 -->
+    <select id="findMessagesByConversation" resultMap="MessageMap">
+        SELECT * FROM im_message
+        WHERE conversation_id = #{conversationId}
+        ORDER BY send_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <update id="markAsDelivered">
+        UPDATE im_message SET status = 'DELIVERED'
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- 将会话中发给该用户的消息标为已读 -->
+    <update id="markAsRead">
+        UPDATE im_message SET status = 'READ'
+        WHERE conversation_id = #{conversationId}
+          AND sender_id != #{userId}
+          AND status != 'READ'
+    </update>
+
+    <!-- 统计某用户未读消息数（所有会话中别人发给TA且未读的） -->
+    <select id="getUnreadCount" resultType="int">
+        SELECT COUNT(*) FROM im_message m
+        INNER JOIN im_conversation_member cm ON m.conversation_id = cm.conversation_id
+        WHERE cm.user_id = #{userId}
+          AND m.sender_id != #{userId}
+          AND m.status != 'READ'
+    </select>
+
+</mapper>

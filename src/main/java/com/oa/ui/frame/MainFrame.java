@@ -3,11 +3,15 @@ package com.oa.ui.frame;
 import com.oa.ui.panel.*;
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainFrame extends BaseFrame {
 
     private JPanel workspacePanel;
     private CardLayout workspaceLayout;
+    // 面板工厂：key → 创建面板的 lambda，首次点击时才 new
+    private Map<String, java.util.function.Supplier<JPanel>> panelFactories = new HashMap<>();
 
     public MainFrame() {
         super("OA协同办公平台");
@@ -24,17 +28,31 @@ public class MainFrame extends BaseFrame {
         workspaceLayout = new CardLayout();
         workspacePanel = new JPanel(workspaceLayout);
 
-        workspacePanel.add(new ApplyPanel(), "APPLY");
-        workspacePanel.add(new ApprovalPanel(), "APPROVAL");
-        workspacePanel.add(new FormTemplatePanel(), "FORM_TEMPLATE");
-        workspacePanel.add(new ProcessDefPanel(), "PROCESS_DEF");
-        workspacePanel.add(new ClockPanel(), "ATTENDANCE");
-        workspacePanel.add(new LeavePanel(), "LEAVE");
-        workspacePanel.add(new NoticePanel(), "NOTICE");
-        workspacePanel.add(new AttendanceStatPanel(), "ATTENDANCE_STAT");
-        workspacePanel.add(new MessagePanel(), "MESSAGE");
-        workspacePanel.add(new JLabel("欢迎使用OA协同办公平台", SwingConstants.CENTER), "WELCOME");
-        workspaceLayout.show(workspacePanel, "APPLY");
+        // 注册面板工厂：只在首次访问时创建面板（懒加载）
+        registerLazy("APPLY",         () -> new ApplyPanel());
+        registerLazy("APPROVAL",      () -> new ApprovalPanel());
+        registerLazy("FORM_TEMPLATE", () -> new FormTemplatePanel());
+        registerLazy("PROCESS_DEF",   () -> new ProcessDefPanel());
+        registerLazy("ATTENDANCE",    () -> new ClockPanel());
+        registerLazy("LEAVE",         () -> new LeavePanel());
+        registerLazy("NOTICE",        () -> new NoticePanel());
+        registerLazy("ATTENDANCE_STAT", () -> new AttendanceStatPanel());
+        registerLazy("MESSAGE",       () -> new MessagePanel());
+        registerLazy("SCHEDULE",      () -> new CalendarPanel());
+        registerLazy("ADMIN",         () -> new MeetingRoomPanel());
+        registerLazy("STATISTICS",    () -> new StatOverviewPanel());
+        registerLazy("IM",            () -> new ImPanel());
+        registerLazy("SYSTEM",        () -> new UserManagePanel());
+        registerLazy("ASSET",         () -> new AssetPanel());
+        registerLazy("VEHICLE",       () -> new VehiclePanel());
+        registerLazy("TASK",          () -> new TaskPanel());
+        registerLazy("MEETING",       () -> new MeetingPanel());
+        registerLazy("WELCOME",       () -> new WelcomePanel());
+        registerLazy("IMPORT",        () -> new ImportPanel());
+        registerLazy("DEPT_MANAGE",   () -> new DeptManagePanel());
+        registerLazy("ROLE_PERM",     () -> new RolePermissionPanel());
+        registerLazy("APPROVAL_STAT", () -> new ApprovalStatPanel());
+        registerLazy("ATT_CHART",     () -> new AttendanceStatChartPanel());
 
         add(workspacePanel, BorderLayout.CENTER);
 
@@ -42,6 +60,12 @@ public class MainFrame extends BaseFrame {
         bar.setBorder(BorderFactory.createEtchedBorder());
         bar.add(new JLabel("当前用户: " + currentUsername));
         add(bar, BorderLayout.SOUTH);
+    }
+
+    private void registerLazy(String key, java.util.function.Supplier<JPanel> factory) {
+        panelFactories.put(key, factory);
+        // 先放一个占位 JPanel，等首次访问时替换
+        workspacePanel.add(new JPanel(), key);
     }
 
     private JMenuBar createMenuBar() {
@@ -66,14 +90,21 @@ public class MainFrame extends BaseFrame {
         Color bg = new Color(45, 52, 63);
         Font font = new Font("Microsoft YaHei", Font.PLAIN, 14);
 
-        addBtn(p, "系统管理", null, fg, bg, font);
+        addBtn(p, "系统管理", "SYSTEM", fg, bg, font);
         addBtn(p, "审批流程", "APPLY", fg, bg, font);
+        addBtn(p, "我的审批", "APPROVAL", fg, bg, font);
         addBtn(p, "考勤打卡", "ATTENDANCE", fg, bg, font);
-        addBtn(p, "公告消息", null, fg, bg, font);
-        addBtn(p, "日程任务", null, fg, bg, font);
-        addBtn(p, "行政管理", null, fg, bg, font);
-        addBtn(p, "统计大屏", null, fg, bg, font);
-        addBtn(p, "即时通讯", null, fg, bg, font);
+        addBtn(p, "公告消息", "NOTICE", fg, bg, font);
+        addBtn(p, "日程任务", "SCHEDULE", fg, bg, font);
+        addBtn(p, "行政管理", "ADMIN", fg, bg, font);
+        addBtn(p, "统计大屏", "STATISTICS", fg, bg, font);
+        addBtn(p, "即时通讯", "IM", fg, bg, font);
+        addBtn(p, "工作台",    "WELCOME",  fg, bg, font);
+        addBtn(p, "资产管理", "ASSET",    fg, bg, font);
+        addBtn(p, "车辆管理", "VEHICLE",  fg, bg, font);
+        addBtn(p, "任务管理", "TASK",     fg, bg, font);
+        addBtn(p, "会议管理", "MEETING",  fg, bg, font);
+        addBtn(p, "数据导入", "IMPORT",   fg, bg, font);
         return p;
     }
 
@@ -88,10 +119,7 @@ public class MainFrame extends BaseFrame {
         b.setFont(font);
         b.addActionListener(e -> {
             if (panelKey != null) {
-                workspaceLayout.show(workspacePanel, panelKey);
-                workspacePanel.revalidate();
-            } else {
-                JOptionPane.showMessageDialog(MainFrame.this, text + "模块开发中，敬请期待");
+                showPanel(panelKey);
             }
         });
         parent.add(b);
@@ -101,7 +129,18 @@ public class MainFrame extends BaseFrame {
         workspacePanel.add(panel, key);
     }
 
+    /** 切换面板（首次访问时懒加载） */
     public void showPanel(String key) {
+        java.util.function.Supplier<JPanel> factory = panelFactories.get(key);
+        if (factory != null) {
+            // 懒加载：首次访问时创建真正的面板
+            JPanel realPanel = factory.get();
+            if (realPanel instanceof BasePanel) {
+                ((BasePanel) realPanel).setCurrentUser(currentUserId, currentUsername);
+            }
+            workspacePanel.add(realPanel, key);
+            panelFactories.remove(key);  // 只创建一次
+        }
         workspaceLayout.show(workspacePanel, key);
         workspacePanel.revalidate();
     }

@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import com.oa.common.PageResult;
 
 /**
  * 消息中心面板 — 站内消息收件箱
@@ -93,10 +94,10 @@ public class MessagePanel extends BasePanel {
         try {
             String filter = (String) filterCombo.getSelectedItem();
             if (isRead == null && FILTER_UNREAD.equals(filter)) isRead = 0;
-            List<Message> messages = messageService.findByReceiver(
+            PageResult<Message> result = messageService.findByReceiver(
                     getCurrentUserId(), isRead, 1, 100);
             tableModel.setRowCount(0);
-            for (Message msg : messages) {
+            for (Message msg : result.getRows()) {
                 if (FILTER_SYSTEM.equals(filter)
                         && !"SYSTEM".equals(msg.getMsgType())) continue;
                 if (FILTER_APPROVAL.equals(filter)
@@ -138,11 +139,11 @@ public class MessagePanel extends BasePanel {
             String time    = (String) tableModel.getValueAt(row, 4);
             String type    = (String) tableModel.getValueAt(row, 5);
 
-            List<Message> messages = messageService.findByReceiver(
+            PageResult<Message> detailResult = messageService.findByReceiver(
                     getCurrentUserId(), null, 1, 100);
             String fullContent = content;
             Long msgId = null;
-            for (Message msg : messages) {
+            for (Message msg : detailResult.getRows()) {
                 if (title.equals(msg.getTitle())) {
                     fullContent = msg.getContent();
                     msgId = msg.getId();

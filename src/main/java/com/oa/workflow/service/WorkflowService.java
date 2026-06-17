@@ -5,8 +5,17 @@ import com.oa.workflow.entity.*;
 import com.oa.common.MyBatisUtil;
 import com.oa.common.Constants;
 import com.oa.common.BusinessException;
+import com.oa.system.dao.UserDao;
+import com.oa.system.dao.DeptDao;
+import com.oa.system.dao.RoleDao;
+import com.oa.system.entity.User;
+import com.oa.system.entity.Dept;
 import org.apache.ibatis.session.SqlSession;
 import java.util.List;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 
 /**
@@ -63,11 +72,86 @@ public class WorkflowService {
             instance.setStatus(Constants.APPROVAL_STATUS_PENDING);
             instanceDao.insert(instance);   // insert后id会自动回填
 
-            // ③ 查询第一个审批节点(节点列表已按sort_order ASC排序)
+            // ③ 遍历节点列表，跳过 CC（抄送）节点
+            // CC 节点不创建待办任务，直接插入审批记录后自动跳过
             List<ProcessNode> nodes = defDao.findNodesByDefId(defId);
-            ProcessNode firstNode = nodes.get(0);
+            int nodeIndex = 0;
+            ProcessNode firstNode = nodes.get(nodeIndex);
+            while (nodeIndex < nodes.size() && "CC".equals(firstNode.getNodeType())) {
+                // 插入抄送记录（无需人工操作）
+                ApprovalRecord ccRecord = new ApprovalRecord();
+                ccRecord.setInstanceId(instance.getId());
+                ccRecord.setNodeId(firstNode.getId());
+                ccRecord.setNodeName(firstNode.getNodeName());
+                ccRecord.setApproverId(firstNode.getApproverId() != null ? firstNode.getApproverId() : 0L);
+                ccRecord.setAction("CC");
+                ccRecord.setComment("系统自动抄送");
+                instanceDao.insertApprovalRecord(ccRecord);
 
-            // ④ 创建第一个节点的审批任务
+                nodeIndex++;
+                if (nodeIndex >= nodes.size()) {
+                    // 全部节点都是 CC，流程直接通过
+                    instanceDao.updateStatus(instance.getId(), Constants.APPROVAL_STATUS_PASSED);
+                    session.commit();
+                    return;
+                }
+                firstNode = nodes.get(nodeIndex);
+            }
+
+            // 处理 CONDITION（条件分支）节点：根据表单数据自动求值路由
+            while (nodeIndex < nodes.size() && "CONDITION".equals(firstNode.getNodeType())) {
+                boolean condResult = evaluateCondition(firstNode.getConditionExpr(), formDataJson);
+                if (condResult) {
+                    // 条件成立 → 找下一个非CC非CONDITION节点
+                    nodeIndex++;
+                    if (nodeIndex >= nodes.size()) {
+                        instanceDao.updateStatus(instance.getId(), Constants.APPROVAL_STATUS_PASSED);
+                        session.commit();
+                        return;
+                    }
+                    firstNode = nodes.get(nodeIndex);
+                    // 跳过紧跟的 CC 节点
+                    while (nodeIndex < nodes.size() && "CC".equals(firstNode.getNodeType())) {
+                        ApprovalRecord ccR = new ApprovalRecord();
+                        ccR.setInstanceId(instance.getId());
+                        ccR.setNodeId(firstNode.getId());
+                        ccR.setNodeName(firstNode.getNodeName());
+                        ccR.setApproverId(firstNode.getApproverId() != null ? firstNode.getApproverId() : 0L);
+                        ccR.setAction("CC");
+                        ccR.setComment("系统自动抄送");
+                        instanceDao.insertApprovalRecord(ccR);
+                        nodeIndex++;
+                        if (nodeIndex >= nodes.size()) {
+                            instanceDao.updateStatus(instance.getId(), Constants.APPROVAL_STATUS_PASSED);
+                            session.commit();
+                            return;
+                        }
+                        firstNode = nodes.get(nodeIndex);
+                    }
+                } else {
+                    // 条件不成立 → 跳过整个分支，找下一个 CONDITION 节点或结束
+                    nodeIndex++;
+                    while (nodeIndex < nodes.size()
+                            && !"CONDITION".equals(nodes.get(nodeIndex).getNodeType())) {
+                        nodeIndex++;
+                    }
+                    if (nodeIndex >= nodes.size()) {
+                        instanceDao.updateStatus(instance.getId(), Constants.APPROVAL_STATUS_PASSED);
+                        session.commit();
+                        return;
+                    }
+                    firstNode = nodes.get(nodeIndex);
+                }
+            }
+
+            // 兜底：落在 CC 或 CONDITION 上时流程通过
+            if (nodeIndex >= nodes.size()) {
+                instanceDao.updateStatus(instance.getId(), Constants.APPROVAL_STATUS_PASSED);
+                session.commit();
+                return;
+            }
+
+            // ④ 创建第一个实际审批节点的审批任务
             TaskDao taskDao = session.getMapper(TaskDao.class);
             Task task = new Task();
             task.setInstanceId(instance.getId());        // 关联刚创建的实例
@@ -75,12 +159,19 @@ public class WorkflowService {
             task.setNodeName(firstNode.getNodeName());   // 快照节点名称
             task.setStatus("PENDING");
 
-            // 根据审批人类型分配任务（当前仅支持 SPECIFIC_USER）
-            if ("SPECIFIC_USER".equals(firstNode.getApproverType())) {
-                task.setAssigneeId(firstNode.getApproverId());
-                taskDao.insert(task);
-            } else {
-                throw new BusinessException("暂不支持该审批人类型: " + firstNode.getApproverType());
+            // 根据审批人类型解析所有审批人，为每个审批人创建任务
+            // SPECIFIC_USER → 单人或多人（SIGN/OR_SIGN 时创建多个任务）
+            // DEPT_LEADER    → 查申请人的部门负责人
+            // ROLE           → 查拥有该角色的所有用户
+            List<Long> approverIds = resolveApproverIds(firstNode, applicantId, session);
+            for (Long assigneeId : approverIds) {
+                Task t = new Task();
+                t.setInstanceId(instance.getId());
+                t.setNodeId(firstNode.getId());
+                t.setNodeName(firstNode.getNodeName());
+                t.setAssigneeId(assigneeId);
+                t.setStatus("PENDING");
+                taskDao.insert(t);
             }
 
             // ⑤ 更新实例状态为审批中
@@ -174,18 +265,115 @@ public class WorkflowService {
                 return;
             }
 
-            // ⑧ 有下一节点 → 创建新审批任务(逻辑同submitProcess的步骤④)
+            // ⑧ 处理下一个节点（跳过 CC 抄送节点）
+            while (nextNode != null && "CC".equals(nextNode.getNodeType())) {
+                // CC 节点自动抄送，不创建待办任务
+                ApprovalRecord ccRecord = new ApprovalRecord();
+                ccRecord.setInstanceId(instanceId);
+                ccRecord.setNodeId(nextNode.getId());
+                ccRecord.setNodeName(nextNode.getNodeName());
+                ccRecord.setApproverId(nextNode.getApproverId() != null ? nextNode.getApproverId() : 0L);
+                ccRecord.setAction("CC");
+                ccRecord.setComment("系统自动抄送");
+                instanceDao.insertApprovalRecord(ccRecord);
+
+                // 跳到下一个节点（以 CC 节点为起点继续找）
+                currentNode = nextNode;
+                nextNode = null;
+                for (ProcessNode n : nodes) {
+                    if (n.getSortOrder() > currentNode.getSortOrder()) {
+                        nextNode = n;
+                        break;
+                    }
+                }
+            }
+
+            // 没有下一个非 CC 节点 → 流程通过
+            if (nextNode == null) {
+                instanceDao.updateStatus(instanceId, Constants.APPROVAL_STATUS_PASSED);
+                session.commit();
+                return;
+            }
+
+            // 处理 CONDITION（条件分支）：自动求值决定走不走这个分支
+            while (nextNode != null && "CONDITION".equals(nextNode.getNodeType())) {
+                ProcessInstance inst = instanceDao.findById(instanceId);
+                boolean condResult = evaluateCondition(nextNode.getConditionExpr(), inst.getFormData());
+                if (condResult) {
+                    // 条件成立 → 找下一个非CC非CONDITION节点
+                    currentNode = nextNode;
+                    nextNode = null;
+                    for (ProcessNode n : nodes) {
+                        if (n.getSortOrder() > currentNode.getSortOrder()) {
+                            nextNode = n;
+                            break;
+                        }
+                    }
+                    // 跳过紧跟的 CC 节点
+                    while (nextNode != null && "CC".equals(nextNode.getNodeType())) {
+                        ApprovalRecord ccR = new ApprovalRecord();
+                        ccR.setInstanceId(instanceId);
+                        ccR.setNodeId(nextNode.getId());
+                        ccR.setNodeName(nextNode.getNodeName());
+                        ccR.setApproverId(nextNode.getApproverId() != null ? nextNode.getApproverId() : 0L);
+                        ccR.setAction("CC");
+                        ccR.setComment("系统自动抄送");
+                        instanceDao.insertApprovalRecord(ccR);
+                        currentNode = nextNode;
+                        nextNode = null;
+                        for (ProcessNode n : nodes) {
+                            if (n.getSortOrder() > currentNode.getSortOrder()) {
+                                nextNode = n;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    // 条件不成立 → 跳过整个分支，找下一个 CONDITION 节点或结束
+                    currentNode = nextNode;
+                    nextNode = null;
+                    for (ProcessNode n : nodes) {
+                        if (n.getSortOrder() > currentNode.getSortOrder()) {
+                            if ("CONDITION".equals(n.getNodeType())) {
+                                nextNode = n;
+                                break;
+                            }
+                            currentNode = n;
+                        }
+                    }
+                    if (nextNode == null) {
+                        instanceDao.updateStatus(instanceId, Constants.APPROVAL_STATUS_PASSED);
+                        session.commit();
+                        return;
+                    }
+                }
+            }
+
+            // 兜底检查
+            if (nextNode == null) {
+                instanceDao.updateStatus(instanceId, Constants.APPROVAL_STATUS_PASSED);
+                session.commit();
+                return;
+            }
+
+            // 有下一个非 CC 节点 → 创建审批任务
             Task nextTask = new Task();
             nextTask.setInstanceId(instanceId);
             nextTask.setNodeId(nextNode.getId());
             nextTask.setNodeName(nextNode.getNodeName());
             nextTask.setStatus("PENDING");
-            if (nextNode.getApproverType().equals("SPECIFIC_USER")) {
-                nextTask.setAssigneeId(nextNode.getApproverId());
-                taskDao.insert(nextTask);
-            } else {
-                throw new BusinessException("暂不支持该审批人类型: " + nextNode.getApproverType());
+            // 解析审批人，为每个审批人创建任务
+            List<Long> nextApproverIds = resolveApproverIds(nextNode, instance.getApplicantId(), session);
+            for (Long assigneeId : nextApproverIds) {
+                Task t = new Task();
+                t.setInstanceId(instanceId);
+                t.setNodeId(nextNode.getId());
+                t.setNodeName(nextNode.getNodeName());
+                t.setAssigneeId(assigneeId);
+                t.setStatus("PENDING");
+                taskDao.insert(t);
             }
+            session.commit();
             session.commit();
 
         } catch (BusinessException e) {
@@ -270,6 +458,81 @@ public class WorkflowService {
      * @param page       页码(从1开始)
      * @param pageSize   每页条数
      */
+    /**
+     * 求值条件表达式：解析 "field op value" 格式（如 "amount > 1000"），
+     * 从 formDataJson 中取出字段值与条件值比较。
+     * 支持的操作符：>  <  >=  <=  ==  !=
+     */
+    private boolean evaluateCondition(String conditionExpr, String formDataJson) {
+        if (conditionExpr == null || conditionExpr.trim().isEmpty()) return true;
+        try {
+            String[] parts = conditionExpr.trim().split("\\s+");
+            if (parts.length != 3) throw new BusinessException("条件表达式格式错误: " + conditionExpr);
+            String fieldName = parts[0];
+            String operator  = parts[1];
+            String condValue = parts[2];
+
+            // 解析 JSON 获取表单数据
+            ObjectMapper mapper = new ObjectMapper();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> formData = mapper.readValue(formDataJson, Map.class);
+            Object fieldValue = formData.get(fieldName);
+            if (fieldValue == null) return false;
+
+            double fieldNum = Double.parseDouble(fieldValue.toString());
+            double condNum  = Double.parseDouble(condValue);
+
+            switch (operator) {
+                case ">":  return fieldNum > condNum;
+                case "<":  return fieldNum < condNum;
+                case ">=": return fieldNum >= condNum;
+                case "<=": return fieldNum <= condNum;
+                case "==": return fieldNum == condNum;
+                case "!=": return fieldNum != condNum;
+                default: throw new BusinessException("不支持的操作符: " + operator);
+            }
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException("条件表达式求值失败: " + conditionExpr + ", " + e.getMessage());
+        }
+    }
+
+    /**
+     * 根据审批人类型解析审批人ID列表
+     * SPECIFIC_USER → 返回节点的 approverId（单人）
+     * DEPT_LEADER    → 查询申请人的部门，返回部门负责人ID
+     * ROLE           → 查询拥有该角色的所有用户ID
+     */
+    private List<Long> resolveApproverIds(ProcessNode node, Long applicantId, SqlSession session) {
+        String type = node.getApproverType();
+        if ("SPECIFIC_USER".equals(type)) {
+            return Collections.singletonList(node.getApproverId());
+        }
+        if ("DEPT_LEADER".equals(type)) {
+            UserDao userDao = session.getMapper(UserDao.class);
+            DeptDao deptDao = session.getMapper(DeptDao.class);
+            User applicant = userDao.findById(applicantId);
+            if (applicant == null || applicant.getDeptId() == null) {
+                throw new BusinessException("未找到申请人部门信息");
+            }
+            Dept dept = deptDao.findById(applicant.getDeptId());
+            if (dept == null || dept.getLeaderId() == null) {
+                throw new BusinessException("未找到部门负责人");
+            }
+            return Collections.singletonList(dept.getLeaderId());
+        }
+        if ("ROLE".equals(type)) {
+            RoleDao roleDao = session.getMapper(RoleDao.class);
+            List<Long> userIds = roleDao.findUserIdsByRoleCode(node.getApproverRole());
+            if (userIds == null || userIds.isEmpty()) {
+                throw new BusinessException("未找到拥有角色 " + node.getApproverRole() + " 的用户");
+            }
+            return userIds;
+        }
+        throw new BusinessException("暂不支持该审批人类型: " + type);
+    }
+
     public List<ProcessInstance> getPendingApprovals(Long approverId, int page, int pageSize) {
         int offset = (page - 1) * pageSize;
         return MyBatisUtil.openSession().getMapper(ProcessInstanceDao.class)

@@ -1,0 +1,812 @@
+https://api.github.com/repos/AptKitty/oa-platform/git/trees/master?recursive=1
+
+{
+  "sha": "1fe7b735148e1f0b1f0065558c07c03ac920849a",
+  "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/1fe7b735148e1f0b1f0065558c07c03ac920849a",
+  "tree": [
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "03a068737fca5b222b7ab1b05c5d0938b93eb4b7",
+      "size": 156,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/03a068737fca5b222b7ab1b05c5d0938b93eb4b7"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9095884f8419ccf6822a794521641b8bb9ff89fb",
+      "size": 4528,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/9095884f8419ccf6822a794521641b8bb9ff89fb"
+    },
+    {
+      "path": "TEAM_DIVISION.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "42cd3d8b531424ce30d508bea9cb6255dd0c353b",
+      "size": 8704,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/42cd3d8b531424ce30d508bea9cb6255dd0c353b"
+    },
+    {
+      "path": "pom.xml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "96bd891d1567d079fcf2858e530998450aee2ad1",
+      "size": 4239,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/96bd891d1567d079fcf2858e530998450aee2ad1"
+    },
+    {
+      "path": "src",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "007799f47895cfb9a1d903ea08096b9631689747",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/007799f47895cfb9a1d903ea08096b9631689747"
+    },
+    {
+      "path": "src/main",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "5ed6f699d1131d350f4a6b5bb0959d448044c7ab",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/5ed6f699d1131d350f4a6b5bb0959d448044c7ab"
+    },
+    {
+      "path": "src/main/java",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "5cedcb104259459e3f6794b32058f78ec59ba62c",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/5cedcb104259459e3f6794b32058f78ec59ba62c"
+    },
+    {
+      "path": "src/main/java/com",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "f153d516bfb4a69649f5ad346f65aa7409a95367",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/f153d516bfb4a69649f5ad346f65aa7409a95367"
+    },
+    {
+      "path": "src/main/java/com/oa",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "bddd7a53eb9ad1dcf9b01c0b47b56457568bdfe4",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/bddd7a53eb9ad1dcf9b01c0b47b56457568bdfe4"
+    },
+    {
+      "path": "src/main/java/com/oa/Application.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2823437ea116760147b456e1838b4e8587720bcd",
+      "size": 1000,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/2823437ea116760147b456e1838b4e8587720bcd"
+    },
+    {
+      "path": "src/main/java/com/oa/admin",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "534206ba63e0ee4a122e4323fedb8f048619be76",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/534206ba63e0ee4a122e4323fedb8f048619be76"
+    },
+    {
+      "path": "src/main/java/com/oa/admin/dao",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "7631d178563c32a8d371bfd0dafb9ca85c1170f4",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/7631d178563c32a8d371bfd0dafb9ca85c1170f4"
+    },
+    {
+      "path": "src/main/java/com/oa/admin/dao/AdminDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "518bb6f2d6b17bd6bd07cef2c9dddd4d533e0546",
+      "size": 1114,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/518bb6f2d6b17bd6bd07cef2c9dddd4d533e0546"
+    },
+    {
+      "path": "src/main/java/com/oa/admin/entity",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "2f52a2247dec045c31a052493ad35945c0acc81d",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/2f52a2247dec045c31a052493ad35945c0acc81d"
+    },
+    {
+      "path": "src/main/java/com/oa/admin/entity/Asset.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5307520d4cf82360d962349c345295072a7ff012",
+      "size": 1662,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/5307520d4cf82360d962349c345295072a7ff012"
+    },
+    {
+      "path": "src/main/java/com/oa/admin/entity/AssetRecord.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e691681b11c06af4f51137059047aa5cf3833b7a",
+      "size": 1183,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/e691681b11c06af4f51137059047aa5cf3833b7a"
+    },
+    {
+      "path": "src/main/java/com/oa/admin/entity/MeetingRoom.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fe97c00b60937c62b4f8f00da631c658c6c7a3d1",
+      "size": 1397,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/fe97c00b60937c62b4f8f00da631c658c6c7a3d1"
+    },
+    {
+      "path": "src/main/java/com/oa/admin/entity/RoomBooking.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9330ce8361cacad7d64225bb085750642d4c5e77",
+      "size": 1535,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/9330ce8361cacad7d64225bb085750642d4c5e77"
+    },
+    {
+      "path": "src/main/java/com/oa/admin/entity/Vehicle.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2e6f578f98c72396ee9c8faf70ef9a79fe97915c",
+      "size": 1035,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/2e6f578f98c72396ee9c8faf70ef9a79fe97915c"
+    },
+    {
+      "path": "src/main/java/com/oa/admin/entity/VehicleRecord.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f5e1e50506c37bae19406fa49a677635b2b6af0c",
+      "size": 1435,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/f5e1e50506c37bae19406fa49a677635b2b6af0c"
+    },
+    {
+      "path": "src/main/java/com/oa/admin/service",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "07bb943d415074a019122f9f3b6d6c6517b3a1a7",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/07bb943d415074a019122f9f3b6d6c6517b3a1a7"
+    },
+    {
+      "path": "src/main/java/com/oa/admin/service/AdminService.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c3f519f7cc141b69ba94e6cc986d87e9afad6a40",
+      "size": 1867,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/c3f519f7cc141b69ba94e6cc986d87e9afad6a40"
+    },
+    {
+      "path": "src/main/java/com/oa/attendance",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "1649e377dd708906e78cdea7d11356bfc2a95069",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/1649e377dd708906e78cdea7d11356bfc2a95069"
+    },
+    {
+      "path": "src/main/java/com/oa/attendance/dao",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "f6eeaf9ca0f3eb632cb2f8e050851d6057beaa9a",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/f6eeaf9ca0f3eb632cb2f8e050851d6057beaa9a"
+    },
+    {
+      "path": "src/main/java/com/oa/attendance/dao/AttendanceDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "31cc002deb50190d1232648cc4bc6d3784f7207f",
+      "size": 755,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/31cc002deb50190d1232648cc4bc6d3784f7207f"
+    },
+    {
+      "path": "src/main/java/com/oa/attendance/dao/LeaveDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b8646dc57dd46af5572ae40c28c4d829e30faf01",
+      "size": 489,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/b8646dc57dd46af5572ae40c28c4d829e30faf01"
+    },
+    {
+      "path": "src/main/java/com/oa/attendance/entity",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "681ed9d2c537e28a9008f2f3fd85a850fce32488",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/681ed9d2c537e28a9008f2f3fd85a850fce32488"
+    },
+    {
+      "path": "src/main/java/com/oa/attendance/entity/ClockRecord.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8daa5d0e583a416b39d90d8cc05f1b949ee16a15",
+      "size": 1079,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/8daa5d0e583a416b39d90d8cc05f1b949ee16a15"
+    },
+    {
+      "path": "src/main/java/com/oa/attendance/entity/LeaveRequest.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fda46a74073b9bba621ca58a2b0dfea7236aea81",
+      "size": 1725,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/fda46a74073b9bba621ca58a2b0dfea7236aea81"
+    },
+    {
+      "path": "src/main/java/com/oa/attendance/service",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "73822338997ce6b99f615837ef21753901216afb",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/73822338997ce6b99f615837ef21753901216afb"
+    },
+    {
+      "path": "src/main/java/com/oa/attendance/service/AttendanceService.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "109169a8081a29933d43fde20c6e68f9d5de5fa8",
+      "size": 1269,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/109169a8081a29933d43fde20c6e68f9d5de5fa8"
+    },
+    {
+      "path": "src/main/java/com/oa/common",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "3963625e539184c6089109f54ef5f375142a5271",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/3963625e539184c6089109f54ef5f375142a5271"
+    },
+    {
+      "path": "src/main/java/com/oa/common/BaseEntity.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "309132318fc774c4decd2e29921408959d8103c0",
+      "size": 744,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/309132318fc774c4decd2e29921408959d8103c0"
+    },
+    {
+      "path": "src/main/java/com/oa/common/BusinessException.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7e976b966ca7d176534243dd84e17a93b0b0eca6",
+      "size": 394,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/7e976b966ca7d176534243dd84e17a93b0b0eca6"
+    },
+    {
+      "path": "src/main/java/com/oa/common/Constants.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e7e421d2151de0f27fafa3d2de29d871ab661402",
+      "size": 2499,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/e7e421d2151de0f27fafa3d2de29d871ab661402"
+    },
+    {
+      "path": "src/main/java/com/oa/common/ExportUtil.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e9559d2ae9dc55225615103db2f8d8e2865c2c37",
+      "size": 2692,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/e9559d2ae9dc55225615103db2f8d8e2865c2c37"
+    },
+    {
+      "path": "src/main/java/com/oa/common/MyBatisUtil.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "901489a1e1056ac9b4db894b61c84412c7e04e64",
+      "size": 995,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/901489a1e1056ac9b4db894b61c84412c7e04e64"
+    },
+    {
+      "path": "src/main/java/com/oa/common/PageResult.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "628ba485c9339bd0ee408bd156c167fa4f2f7611",
+      "size": 861,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/628ba485c9339bd0ee408bd156c167fa4f2f7611"
+    },
+    {
+      "path": "src/main/java/com/oa/common/Result.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7b24aec69e84cd86e306fdba9dd56243ab23ed77",
+      "size": 1170,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/7b24aec69e84cd86e306fdba9dd56243ab23ed77"
+    },
+    {
+      "path": "src/main/java/com/oa/im",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "e4c10e0f6e8038966ecb2081e5c7247132412b1a",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/e4c10e0f6e8038966ecb2081e5c7247132412b1a"
+    },
+    {
+      "path": "src/main/java/com/oa/im/dao",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "63c695a2d24cda854c49ccc30a7173e1e37f00ee",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/63c695a2d24cda854c49ccc30a7173e1e37f00ee"
+    },
+    {
+      "path": "src/main/java/com/oa/im/dao/ImDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "76bc20b762e135e333da74f133e943f4ffedebc5",
+      "size": 1539,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/76bc20b762e135e333da74f133e943f4ffedebc5"
+    },
+    {
+      "path": "src/main/java/com/oa/im/entity",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "a2b30e5cbd50eac04457d6293c36079018207037",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/a2b30e5cbd50eac04457d6293c36079018207037"
+    },
+    {
+      "path": "src/main/java/com/oa/im/entity/Conversation.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7f294aae9873fd27f25067388953cfdda0ee80ec",
+      "size": 1020,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/7f294aae9873fd27f25067388953cfdda0ee80ec"
+    },
+    {
+      "path": "src/main/java/com/oa/im/entity/ImMessage.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e9bc0192cda9a0623f6f63dd3492e5cea7f9c9b9",
+      "size": 1303,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/e9bc0192cda9a0623f6f63dd3492e5cea7f9c9b9"
+    },
+    {
+      "path": "src/main/java/com/oa/im/service",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "34a785401b727e470738b58dcd0b5b1daab9a399",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/34a785401b727e470738b58dcd0b5b1daab9a399"
+    },
+    {
+      "path": "src/main/java/com/oa/im/service/ImService.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9b8bd6d4a8a65fa20428b7a638a31b9d557c3046",
+      "size": 1950,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/9b8bd6d4a8a65fa20428b7a638a31b9d557c3046"
+    },
+    {
+      "path": "src/main/java/com/oa/im/websocket",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "cc30cb892c14e835864441389375686ae330cd8b",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/cc30cb892c14e835864441389375686ae330cd8b"
+    },
+    {
+      "path": "src/main/java/com/oa/im/websocket/ImWebSocketServer.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "17537808cb848a20980fcb2812b3df9e60e034be",
+      "size": 1044,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/17537808cb848a20980fcb2812b3df9e60e034be"
+    },
+    {
+      "path": "src/main/java/com/oa/notice",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "211c5807f14f53b7e0ca7f75fb0976352fd0304d",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/211c5807f14f53b7e0ca7f75fb0976352fd0304d"
+    },
+    {
+      "path": "src/main/java/com/oa/notice/dao",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "076ab1561a2e6b3f415cbe0a292e3d4d99d8e6b7",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/076ab1561a2e6b3f415cbe0a292e3d4d99d8e6b7"
+    },
+    {
+      "path": "src/main/java/com/oa/notice/dao/MessageDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e84b82f6e4bad7844f0a991e49b32df8cb90193b",
+      "size": 694,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/e84b82f6e4bad7844f0a991e49b32df8cb90193b"
+    },
+    {
+      "path": "src/main/java/com/oa/notice/dao/NoticeDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "353fe34bdf1d65e82ded77e818d1bbf6acf3c917",
+      "size": 608,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/353fe34bdf1d65e82ded77e818d1bbf6acf3c917"
+    },
+    {
+      "path": "src/main/java/com/oa/notice/entity",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "a9cd3dc37a060d5258aa79f2246ef61812fbfacb",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/a9cd3dc37a060d5258aa79f2246ef61812fbfacb"
+    },
+    {
+      "path": "src/main/java/com/oa/notice/entity/Message.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fea7b27244fcdb3bbbc7daece3916114b306594c",
+      "size": 1289,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/fea7b27244fcdb3bbbc7daece3916114b306594c"
+    },
+    {
+      "path": "src/main/java/com/oa/notice/entity/Notice.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e1fc038d2d46d6acab9fb7d13d0b69200b16e1e2",
+      "size": 1355,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/e1fc038d2d46d6acab9fb7d13d0b69200b16e1e2"
+    },
+    {
+      "path": "src/main/java/com/oa/notice/service",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "e803f8aacf6c26786ba20bed0af1f61fa7cc24b2",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/e803f8aacf6c26786ba20bed0af1f61fa7cc24b2"
+    },
+    {
+      "path": "src/main/java/com/oa/notice/service/MessageService.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9f95327a86f0dc081b3d1afd5b18f1bdca31e13f",
+      "size": 1027,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/9f95327a86f0dc081b3d1afd5b18f1bdca31e13f"
+    },
+    {
+      "path": "src/main/java/com/oa/notice/service/NoticeService.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e9ee6d4bbc9b4ee3b6ee8d043d14a175680acc1f",
+      "size": 1162,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/e9ee6d4bbc9b4ee3b6ee8d043d14a175680acc1f"
+    },
+    {
+      "path": "src/main/java/com/oa/schedule",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "8d13d2e1148d60b01cdd1e0bb2bfba9eb456bc59",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/8d13d2e1148d60b01cdd1e0bb2bfba9eb456bc59"
+    },
+    {
+      "path": "src/main/java/com/oa/schedule/dao",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "b938285443883daa353722d904f326fcf5e26784",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/b938285443883daa353722d904f326fcf5e26784"
+    },
+    {
+      "path": "src/main/java/com/oa/schedule/dao/ScheduleDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a3a62c05db319dc1a83b91469556f0b4fd77b5fb",
+      "size": 1272,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/a3a62c05db319dc1a83b91469556f0b4fd77b5fb"
+    },
+    {
+      "path": "src/main/java/com/oa/schedule/entity",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "fe5a28c612296d52e58e92886190956395084e3e",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/fe5a28c612296d52e58e92886190956395084e3e"
+    },
+    {
+      "path": "src/main/java/com/oa/schedule/entity/CalendarEvent.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d9466996862c939d07052fb8da8e0b12326a4525",
+      "size": 1652,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/d9466996862c939d07052fb8da8e0b12326a4525"
+    },
+    {
+      "path": "src/main/java/com/oa/schedule/entity/Meeting.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d09ce2e77892054cba6997cfa1ee86c624794513",
+      "size": 1540,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/d09ce2e77892054cba6997cfa1ee86c624794513"
+    },
+    {
+      "path": "src/main/java/com/oa/schedule/entity/Task.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5d7587aa93b0ca7e4289ca77f655212ed7c507c0",
+      "size": 1745,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/5d7587aa93b0ca7e4289ca77f655212ed7c507c0"
+    },
+    {
+      "path": "src/main/java/com/oa/schedule/service",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "9d82e9fa553721cd4bf563cba0385669ecb2daf1",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/9d82e9fa553721cd4bf563cba0385669ecb2daf1"
+    },
+    {
+      "path": "src/main/java/com/oa/schedule/service/ScheduleService.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "ef00f7795655429854e94c8cd3a1b52a17f676b0",
+      "size": 1399,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/ef00f7795655429854e94c8cd3a1b52a17f676b0"
+    },
+    {
+      "path": "src/main/java/com/oa/statistics",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "74439f1e3b401719b8a3eb8561eb133d3a7ec7e8",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/74439f1e3b401719b8a3eb8561eb133d3a7ec7e8"
+    },
+    {
+      "path": "src/main/java/com/oa/statistics/dao",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "15b60b3b82efbe3724a09bb8c4162cfbb83344b8",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/15b60b3b82efbe3724a09bb8c4162cfbb83344b8"
+    },
+    {
+      "path": "src/main/java/com/oa/statistics/dao/StatDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e8442614ffb5b6817e790d10759251dc85a7c382",
+      "size": 659,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/e8442614ffb5b6817e790d10759251dc85a7c382"
+    },
+    {
+      "path": "src/main/java/com/oa/statistics/entity",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "caa15935d3b4a9c4ff8848812f25f56e0b968da0",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/caa15935d3b4a9c4ff8848812f25f56e0b968da0"
+    },
+    {
+      "path": "src/main/java/com/oa/statistics/entity/StatResultVO.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "af73f4ece52a65ad75a6e4b7da9fc76062f00ac2",
+      "size": 719,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/af73f4ece52a65ad75a6e4b7da9fc76062f00ac2"
+    },
+    {
+      "path": "src/main/java/com/oa/statistics/service",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "748214bf51bd199ab27df1a569b1e09ee65161df",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/748214bf51bd199ab27df1a569b1e09ee65161df"
+    },
+    {
+      "path": "src/main/java/com/oa/statistics/service/StatService.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "34192652ae787f7ab530aac21f0eb7a0f6304188",
+      "size": 1024,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/34192652ae787f7ab530aac21f0eb7a0f6304188"
+    },
+    {
+      "path": "src/main/java/com/oa/system",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "28369ae691b49ecea4c8a69d58deedb5e1f068c8",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/28369ae691b49ecea4c8a69d58deedb5e1f068c8"
+    },
+    {
+      "path": "src/main/java/com/oa/system/dao",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "94098cfec0d72a970d63506c558facb7515086bd",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/94098cfec0d72a970d63506c558facb7515086bd"
+    },
+    {
+      "path": "src/main/java/com/oa/system/dao/DeptDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a1f5c80e752c748819d3623a4f8b79ea69b9545f",
+      "size": 342,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/a1f5c80e752c748819d3623a4f8b79ea69b9545f"
+    },
+    {
+      "path": "src/main/java/com/oa/system/dao/MenuDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "937c7241b4f6f08206d9674e7aff6fe5605c2501",
+      "size": 544,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/937c7241b4f6f08206d9674e7aff6fe5605c2501"
+    },
+    {
+      "path": "src/main/java/com/oa/system/dao/RoleDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8fc5510089d9b4b8554c2b8e070a385bc2ab0682",
+      "size": 502,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/8fc5510089d9b4b8554c2b8e070a385bc2ab0682"
+    },
+    {
+      "path": "src/main/java/com/oa/system/dao/UserDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "af8434125eb8c16ac15729ce20baaf2c420fd1c2",
+      "size": 917,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/af8434125eb8c16ac15729ce20baaf2c420fd1c2"
+    },
+    {
+      "path": "src/main/java/com/oa/system/entity",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "48cc77f95b6d8697dc74003169e886c4e7983eef",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/48cc77f95b6d8697dc74003169e886c4e7983eef"
+    },
+    {
+      "path": "src/main/java/com/oa/system/entity/Dept.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "43305fbc362fa811e760b5ea6210e2b3235cb8f5",
+      "size": 1039,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/43305fbc362fa811e760b5ea6210e2b3235cb8f5"
+    },
+    {
+      "path": "src/main/java/com/oa/system/entity/Menu.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3bd94683ad78dd6c4736179aeb3863703a0ac080",
+      "size": 1174,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/3bd94683ad78dd6c4736179aeb3863703a0ac080"
+    },
+    {
+      "path": "src/main/java/com/oa/system/entity/Role.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8a101b50d99e6434e3794887db02189e18b3638d",
+      "size": 748,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/8a101b50d99e6434e3794887db02189e18b3638d"
+    },
+    {
+      "path": "src/main/java/com/oa/system/entity/User.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dd8c764b6f8f2138b3ffaa4025e820c324b9a3b8",
+      "size": 1490,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/dd8c764b6f8f2138b3ffaa4025e820c324b9a3b8"
+    },
+    {
+      "path": "src/main/java/com/oa/system/service",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "98f485e5fd411ad4f46e30aff53fb7b0b25721d6",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/98f485e5fd411ad4f46e30aff53fb7b0b25721d6"
+    },
+    {
+      "path": "src/main/java/com/oa/system/service/RoleService.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e6a5af5d0f96bbb9c4a38c3b1cd8d53b62f28707",
+      "size": 904,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/e6a5af5d0f96bbb9c4a38c3b1cd8d53b62f28707"
+    },
+    {
+      "path": "src/main/java/com/oa/system/service/UserService.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "be9ad63ed131500b8cf6f339f13b654373f6a2c8",
+      "size": 1624,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/be9ad63ed131500b8cf6f339f13b654373f6a2c8"
+    },
+    {
+      "path": "src/main/java/com/oa/ui",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "1fb70092a9047bf57a72f1a28dda43a73844babf",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/1fb70092a9047bf57a72f1a28dda43a73844babf"
+    },
+    {
+      "path": "src/main/java/com/oa/ui/frame",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "025ea07f4b1b779290932eddc488eceebbc161e0",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/025ea07f4b1b779290932eddc488eceebbc161e0"
+    },
+    {
+      "path": "src/main/java/com/oa/ui/frame/BaseFrame.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "255534a44946252da40cf1d5a853940968bb5fee",
+      "size": 1667,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/255534a44946252da40cf1d5a853940968bb5fee"
+    },
+    {
+      "path": "src/main/java/com/oa/ui/frame/LoginFrame.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0f26dc76c3b2557ff7a0a11cea32709fd25e0d91",
+      "size": 2758,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/0f26dc76c3b2557ff7a0a11cea32709fd25e0d91"
+    },
+    {
+      "path": "src/main/java/com/oa/ui/frame/MainFrame.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d50c1b5d18b8b4bee60e975cdaa21db30637272b",
+      "size": 4114,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/d50c1b5d18b8b4bee60e975cdaa21db30637272b"
+    },
+    {
+      "path": "src/main/java/com/oa/ui/panel",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "f4a5c15dff3bdfe1279789f0dc3199a4c0465813",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/f4a5c15dff3bdfe1279789f0dc3199a4c0465813"
+    },
+    {
+      "path": "src/main/java/com/oa/ui/panel/BasePanel.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6d89ac4fa1fdfc245c0dcea27e36a4e4886e4f5d",
+      "size": 2321,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/6d89ac4fa1fdfc245c0dcea27e36a4e4886e4f5d"
+    },
+    {
+      "path": "src/main/java/com/oa/workflow",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "666936521fbce8cf3d6b83b2ec1bdffab2e688dc",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/666936521fbce8cf3d6b83b2ec1bdffab2e688dc"
+    },
+    {
+      "path": "src/main/java/com/oa/workflow/dao",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "98f2359862fe80f0ea35edfe2709ec9e50965902",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/98f2359862fe80f0ea35edfe2709ec9e50965902"
+    },
+    {
+      "path": "src/main/java/com/oa/workflow/dao/FormTemplateDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7eca1fbe6ee783b67882a9a9ca53f459340f6be6",
+      "size": 498,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/7eca1fbe6ee783b67882a9a9ca53f459340f6be6"
+    },
+    {
+      "path": "src/main/java/com/oa/workflow/dao/ProcessDefinitionDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "803d6c536e689d6afd16702ea014ba3fb816c977",
+      "size": 493,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/803d6c536e689d6afd16702ea014ba3fb816c977"
+    },
+    {
+      "path": "src/main/java/com/oa/workflow/dao/ProcessInstanceDao.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cb1b8e02c2f0f459e70f4bd2265563e817a5d036",
+      "size": 1216,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/cb1b8e02c2f0f459e70f4bd2265563e817a5d036"
+    },
+    {
+      "path": "src/main/java/com/oa/workflow/entity",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "c707ad3ec0a87b0f00ceb72877d537c356744792",
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/trees/c707ad3ec0a87b0f00ceb72877d537c356744792"
+    },
+    {
+      "path": "src/main/java/com/oa/workflow/entity/ApprovalRecord.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a7d2ee6a3e0639a5b9fddb8a1e0ddce796b9d371",
+      "size": 1495,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/a7d2ee6a3e0639a5b9fddb8a1e0ddce796b9d371"
+    },
+    {
+      "path": "src/main/java/com/oa/workflow/entity/FormField.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "da8065f8f61cd62fed93421e7e935513a55bdea7",
+      "size": 1272,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/da8065f8f61cd62fed93421e7e935513a55bdea7"
+    },
+    {
+      "path": "src/main/java/com/oa/workflow/entity/FormTemplate.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "615419348a66af756b71b0d30772e52c5ac65393",
+      "size": 971,
+      "url": "https://api.github.com/repos/AptKitty/oa-platform/git/blobs/615419348a66af756b71b0d30772e52c5ac65393"
+    },
+    {
+      "path": "src/main/java/com/oa/workflow/entity/ProcessDefinition.java",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9
+
+[… truncated 10595 chars …]

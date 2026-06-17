@@ -163,41 +163,45 @@ public class ClockPanel extends BasePanel {
 
     // ====== 打卡操作 ======
 
-    /** 上班打卡 */
+    /** ???? */
     private void doCheckIn() {
         runAsync(() -> {
-        LocalDateTime now = LocalDateTime.now();
-        try {
-            String result = attendanceService.checkIn(getCurrentUserId(), "上班", now);
-            if (result.startsWith("成功")) {
-                showInfo(result);
-                loadTodayStatus();      // 刷新按钮状态
-                loadRecentRecords();    // 刷新记录表
-            } else {
-                showError(result);
+            LocalDateTime now = LocalDateTime.now();
+            try {
+                String result = attendanceService.checkIn(getCurrentUserId(), "??", now);
+                SwingUtilities.invokeLater(() -> {
+                    if (result.startsWith("??")) {
+                        showInfo(result);
+                        loadTodayStatus();
+                        loadRecentRecords();
+                    } else {
+                        showError(result);
+                    }
+                });
+            } catch (Exception e) {
+                SwingUtilities.invokeLater(() -> showError("?????" + e.getMessage()));
             }
-        } catch (Exception e) {
-            showError("打卡异常：" + e.getMessage());
-        }
         });
     }
 
-    /** 下班打卡 */
+    /** ???? */
     private void doCheckOut() {
         runAsync(() -> {
-        LocalDateTime now = LocalDateTime.now();
-        try {
-            String result = attendanceService.checkIn(getCurrentUserId(), "下班", now);
-            if (result.startsWith("成功")) {
-                showInfo(result);
-                loadTodayStatus();
-                loadRecentRecords();
-            } else {
-                showError(result);
+            LocalDateTime now = LocalDateTime.now();
+            try {
+                String result = attendanceService.checkIn(getCurrentUserId(), "??", now);
+                SwingUtilities.invokeLater(() -> {
+                    if (result.startsWith("??")) {
+                        showInfo(result);
+                        loadTodayStatus();
+                        loadRecentRecords();
+                    } else {
+                        showError(result);
+                    }
+                });
+            } catch (Exception e) {
+                SwingUtilities.invokeLater(() -> showError("?????" + e.getMessage()));
             }
-        } catch (Exception e) {
-            showError("打卡异常：" + e.getMessage());
-        }
         });
     }
 

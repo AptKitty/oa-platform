@@ -258,7 +258,7 @@ public class ApplyPanel extends BasePanel {
     private String[] parseOptions(String optionsJson) {
         if (optionsJson == null || optionsJson.isEmpty()) return new String[0];
         // (1) 用正则去掉 [ ] " 三种符号
-        String inner = optionsJson.replaceAll("[\\\\[\\\\]\\\"]", "");
+        String inner = optionsJson.replaceAll("[\\[\\]\"]", "");
         // (2) 按逗号切分成数组
         return inner.split(",");
     }

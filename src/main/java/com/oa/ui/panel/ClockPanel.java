@@ -165,6 +165,7 @@ public class ClockPanel extends BasePanel {
 
     /** 上班打卡 */
     private void doCheckIn() {
+        runAsync(() -> {
         LocalDateTime now = LocalDateTime.now();
         try {
             String result = attendanceService.checkIn(getCurrentUserId(), "上班", now);
@@ -182,6 +183,7 @@ public class ClockPanel extends BasePanel {
 
     /** 下班打卡 */
     private void doCheckOut() {
+        runAsync(() -> {
         LocalDateTime now = LocalDateTime.now();
         try {
             String result = attendanceService.checkIn(getCurrentUserId(), "下班", now);

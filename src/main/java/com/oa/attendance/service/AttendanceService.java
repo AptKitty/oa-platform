@@ -5,6 +5,7 @@ import com.oa.attendance.dao.LeaveDao;
 import com.oa.attendance.entity.*;
 import com.oa.common.MyBatisUtil;
 import com.oa.common.BusinessException;
+import org.apache.ibatis.session.SqlSession;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,19 +39,24 @@ public class AttendanceService {
      */
     public void clockIn(Long userId, String clockType, LocalDateTime clockTime, String ipAddress) {
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
-        AttendanceDao dao = MyBatisUtil.openSession().getMapper(AttendanceDao.class);
-        
-        //防重复，每天最多打卡两次
-        long count = dao.countTodayClock(userId, todayStart);
-        if (count >= 2) {
-            throw new BusinessException("今日已打完卡");
-            }
-        ClockRecord record = new ClockRecord();
-        record.setUserId(userId);
-        record.setClockType(clockType);
-        record.setClockTime(clockTime);
-        record.setIpAddress(ipAddress);
-        dao.insertClockRecord(record);
+        SqlSession session = MyBatisUtil.openSession(false);
+        try {
+            AttendanceDao dao = session.getMapper(AttendanceDao.class);
+            long count = dao.countTodayClock(userId, todayStart);
+            if (count >= 2) throw new BusinessException("今日已打完卡");
+            ClockRecord record = new ClockRecord();
+            record.setUserId(userId);
+            record.setClockType(clockType);
+            record.setClockTime(clockTime);
+            record.setIpAddress(ipAddress);
+            dao.insertClockRecord(record);
+            session.commit();
+        } catch (Exception e) {
+            session.rollback();
+            throw e;
+        } finally {
+            session.close();
+        }
     }
 
     /**
@@ -189,44 +195,31 @@ public class AttendanceService {
      * @throws BusinessException 额度不足 / 时间冲突
      */
     public void applyLeave(LeaveRequest request) {
-        LeaveDao dao = MyBatisUtil.openSession().getMapper(LeaveDao.class);
-
-        // 校验请假额度
-        int year = request.getStartTime().getYear();
-        Map<String, Object> quota =
-                dao.getQuotaByType(request.getUserId(), year, request.getLeaveType());
-
-        if (quota == null || quota.isEmpty()) {
-            throw new BusinessException("该假期类型暂无额度，请联系管理员初始化");
-        }
-
-        double remaining = ((Number) quota.get("remaining_days")).doubleValue();
-        if (request.getDuration() > remaining) {
-            throw new BusinessException(
-                    "请假天数超出剩余额度（剩余 " + String.format("%.1f", remaining) + " 天）");
-        }
-        
-        // 时间冲突检测：与已有有效请假不能重叠）
-        List<LeaveRequest> existing = dao.findByUserId(request.getUserId(), 0, 1000);
-        for (LeaveRequest lr : existing) {
-            // 只检查未驳回/未取消的
-            if ("REJECTED".equals(lr.getStatus()) || "CANCELLED".equals(lr.getStatus())) {
-                continue;
+        SqlSession session = MyBatisUtil.openSession(false);
+        try {
+            LeaveDao dao = session.getMapper(LeaveDao.class);
+            int year = request.getStartTime().getYear();
+            Map<String, Object> quota = dao.getQuotaByType(request.getUserId(), year, request.getLeaveType());
+            if (quota == null || quota.isEmpty())
+                throw new BusinessException("该假期类型暂无额度");
+            double remaining = ((Number) quota.get("remaining_days")).doubleValue();
+            if (request.getDuration() > remaining)
+                throw new BusinessException("请假天数超出剩余额度(剩余" + String.format("%.1f", remaining) + "天)");
+            List<LeaveRequest> existing = dao.findByUserId(request.getUserId(), 0, 1000);
+            for (LeaveRequest lr : existing) {
+                if ("REJECTED".equals(lr.getStatus()) || "CANCELLED".equals(lr.getStatus())) continue;
+                if (request.getStartTime().isBefore(lr.getEndTime()) && request.getEndTime().isAfter(lr.getStartTime()))
+                    throw new BusinessException("与已有请假申请时间冲突");
             }
-            boolean overlap = request.getStartTime().isBefore(lr.getEndTime())
-                           && request.getEndTime().isAfter(lr.getStartTime());
-            if (overlap) {
-                throw new BusinessException("与已有的请假申请时间冲突（"
-                        + lr.getStartTime().toLocalDate() + " ~ "
-                        + lr.getEndTime().toLocalDate() + "）");
-            }
+            if (request.getStatus() == null) request.setStatus("PENDING");
+            dao.insert(request);
+            session.commit();
+        } catch (Exception e) {
+            session.rollback();
+            throw e;
+        } finally {
+            session.close();
         }
-
-        // ③ 写入
-        if (request.getStatus() == null) {
-            request.setStatus("PENDING");
-        }
-        dao.insert(request);
     }
 
     /**
@@ -242,10 +235,18 @@ public class AttendanceService {
      * @return true=扣减成功, false=额度不足
      */
     public boolean deductLeaveQuota(Long userId, String leaveType, double days) {
-        int year = LocalDate.now().getYear();
-        int affected = MyBatisUtil.openSession().getMapper(LeaveDao.class)
-                .deductQuota(userId, year, leaveType, days);
-        return affected > 0;
+        SqlSession session = MyBatisUtil.openSession(false);
+        try {
+            int year = LocalDate.now().getYear();
+            int affected = session.getMapper(LeaveDao.class).deductQuota(userId, year, leaveType, days);
+            session.commit();
+            return affected > 0;
+        } catch (Exception e) {
+            session.rollback();
+            throw e;
+        } finally {
+            session.close();
+        }
     }
 
     /**

@@ -44,6 +44,7 @@
         <mapper resource="mapper/admin/AssetMapper.xml"/>
         <mapper resource="mapper/admin/MeetingRoomMapper.xml"/>
         <mapper resource="mapper/im/ImMapper.xml"/>
+        <mapper resource="mapper/admin/VehicleMapper.xml"/>
         <mapper resource="mapper/statistics/StatMapper.xml"/>
     </mappers>
 </configuration>

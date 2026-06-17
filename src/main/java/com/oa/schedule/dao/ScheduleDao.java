@@ -21,4 +21,5 @@ public interface ScheduleDao {
                                                             @Param("status") String status);
     int insertTask(com.oa.schedule.entity.Task task);
     int updateTaskStatus(@Param("id") Long id, @Param("status") String status);
+    int updateTask(com.oa.schedule.entity.Task task);
 }

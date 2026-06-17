@@ -29,6 +29,7 @@ public class ScheduleService {
 
     public void addTask(Task t) { getDao().insertTask(t); }
     public void updateTaskStatus(Long id, String status) { getDao().updateTaskStatus(id, status); }
+    public void updateTask(Task t) { getDao().updateTask(t); }
     public List<Task> getTasksByAssignee(Long assigneeId, String status) {
         return getDao().findTasksByAssignee(assigneeId, status);
     }

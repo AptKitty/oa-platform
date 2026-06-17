@@ -17,9 +17,8 @@ public class UserService {
     }
 
     public User login(String username, String password) {
-        // TODO: MD5加密比对
         User user = getDao().findByUsername(username);
-        if (user == null || !user.getPassword().equals(password)) {
+        if (user == null || !user.getPassword().equals(com.oa.common.MD5Util.md5(password))) {
             throw new com.oa.common.BusinessException("用户名或密码错误");
         }
         if (user.getStatus() == 0) {

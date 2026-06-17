@@ -1,4 +1,4 @@
-﻿package com.oa.im.websocket;
+package com.oa.im.websocket;
 
 /**
  * WebSocket服务端骨架 - 即时通讯模块（预留）

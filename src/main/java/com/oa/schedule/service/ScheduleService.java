@@ -1,4 +1,4 @@
-﻿package com.oa.schedule.service;
+package com.oa.schedule.service;
 
 import com.oa.schedule.dao.ScheduleDao;
 import com.oa.schedule.entity.*;

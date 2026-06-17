@@ -1,4 +1,4 @@
-﻿package com.oa.common;
+package com.oa.common;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-﻿package com.oa.common;
+package com.oa.common;
 
 /**
  * 业务异常

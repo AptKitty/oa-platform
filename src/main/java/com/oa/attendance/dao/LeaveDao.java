@@ -1,4 +1,4 @@
-﻿package com.oa.attendance.dao;
+package com.oa.attendance.dao;
 
 import com.oa.attendance.entity.LeaveRequest;
 import org.apache.ibatis.annotations.Param;

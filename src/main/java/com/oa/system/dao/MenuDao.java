@@ -1,4 +1,4 @@
-﻿package com.oa.system.dao;
+package com.oa.system.dao;
 
 import com.oa.system.entity.Menu;
 import java.util.List;

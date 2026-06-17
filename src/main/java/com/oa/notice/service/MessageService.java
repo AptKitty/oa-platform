@@ -1,4 +1,4 @@
-﻿package com.oa.notice.service;
+package com.oa.notice.service;
 
 import com.oa.notice.dao.MessageDao;
 import com.oa.notice.entity.Message;

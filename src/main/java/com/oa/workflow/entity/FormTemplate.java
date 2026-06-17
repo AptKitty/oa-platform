@@ -1,4 +1,4 @@
-﻿package com.oa.workflow.entity;
+package com.oa.workflow.entity;
 
 import com.oa.common.BaseEntity;
 

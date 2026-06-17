@@ -1,4 +1,4 @@
-﻿package com.oa.ui.panel;
+package com.oa.ui.panel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;

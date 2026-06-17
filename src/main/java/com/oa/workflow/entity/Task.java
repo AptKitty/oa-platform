@@ -1,4 +1,4 @@
-﻿package com.oa.workflow.entity;
+package com.oa.workflow.entity;
 
 /**
  * 审批任务实体

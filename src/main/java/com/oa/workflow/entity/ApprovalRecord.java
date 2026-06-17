@@ -1,4 +1,4 @@
-﻿package com.oa.workflow.entity;
+package com.oa.workflow.entity;
 
 public class ApprovalRecord {
     private Long id;

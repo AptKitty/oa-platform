@@ -1,4 +1,4 @@
-﻿package com.oa.attendance.entity;
+package com.oa.attendance.entity;
 
 public class LeaveRequest {
     private Long id;

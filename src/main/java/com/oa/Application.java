@@ -1,4 +1,4 @@
-﻿package com.oa;
+package com.oa;
 
 import com.formdev.flatlaf.FlatLightLaf;
 import com.oa.ui.frame.LoginFrame;

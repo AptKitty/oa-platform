@@ -1,4 +1,4 @@
-﻿package com.oa.system.entity;
+package com.oa.system.entity;
 
 import com.oa.common.BaseEntity;
 

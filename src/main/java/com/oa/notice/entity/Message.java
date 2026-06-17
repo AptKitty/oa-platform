@@ -1,4 +1,4 @@
-﻿package com.oa.notice.entity;
+package com.oa.notice.entity;
 
 public class Message {
     private Long id;

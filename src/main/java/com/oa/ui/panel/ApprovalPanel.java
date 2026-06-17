@@ -1,4 +1,4 @@
-﻿package com.oa.ui.panel;
+package com.oa.ui.panel;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -77,7 +77,7 @@ public class ApprovalPanel extends BasePanel {
     private void loadPending() { 
         clearTable(pendingTable);                                            // 清空旧数据
         List<ProcessInstance> pendingInstances = 
-            workflowService.getPendingApprovals(currentUserId, 1, 100);     // 查第1页，每页100条
+            workflowService.getPendingApprovals(getCurrentUserId(), 1, 100);     // 查第1页，每页100条
         for (ProcessInstance p : pendingInstances) {
             pendingTableModel.addRow(new Object[]{
                 p.getId(),                                                  // ID
@@ -142,7 +142,7 @@ public class ApprovalPanel extends BasePanel {
         // 流程：(a)调用 Service.approve()  →  (b)提示成功  →  (c)刷新列表  →  (d)重置操作区
         approveBtn.addActionListener(e -> { 
             try {
-                workflowService.approve(instanceId, currentUserId, commentArea.getText());  // (a)
+                workflowService.approve(instanceId, getCurrentUserId(), commentArea.getText());  // (a)
                 showInfo("审批通过");                                                         // (b)
                 loadPending();                                                                // (c) 刷新列表
                 resetDetailPanel();                                                           // (d) 重置操作区
@@ -155,7 +155,7 @@ public class ApprovalPanel extends BasePanel {
         // 流程：同通过，但调用 Service.reject()，状态变为 REJECTED
         rejectBtn.addActionListener(e -> {
             try { 
-                workflowService.reject(instanceId, currentUserId, commentArea.getText());
+                workflowService.reject(instanceId, getCurrentUserId(), commentArea.getText());
                 showInfo("已驳回");
                 loadPending();
                 resetDetailPanel();

@@ -1,4 +1,4 @@
-﻿package com.oa.admin.service;
+package com.oa.admin.service;
 
 import com.oa.admin.dao.AdminDao;
 import com.oa.admin.entity.*;
@@ -21,7 +21,7 @@ public class AdminService {
     public void bookRoom(RoomBooking booking) {
         AdminDao dao = getDao();
         if (!dao.isTimeSlotAvailable(booking.getRoomId(), booking.getStartTime(), booking.getEndTime())) {
-            throw new BusinessException(""该时段已被预约"");
+            throw new BusinessException("该时段已被预约");
         }
         dao.insertBooking(booking);
     }

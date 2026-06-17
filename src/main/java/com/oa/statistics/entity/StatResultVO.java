@@ -1,4 +1,4 @@
-﻿package com.oa.statistics.entity;
+package com.oa.statistics.entity;
 
 public class StatResultVO {
     private String name;

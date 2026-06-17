@@ -1,4 +1,4 @@
-﻿package com.oa.workflow.dao;
+package com.oa.workflow.dao;
 
 import com.oa.workflow.entity.ProcessInstance;
 import com.oa.workflow.entity.ApprovalRecord;

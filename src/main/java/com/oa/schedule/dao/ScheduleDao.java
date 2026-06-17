@@ -1,4 +1,4 @@
-﻿package com.oa.schedule.dao;
+package com.oa.schedule.dao;
 
 import com.oa.schedule.entity.CalendarEvent;
 import org.apache.ibatis.annotations.Param;

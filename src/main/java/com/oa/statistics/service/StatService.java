@@ -1,4 +1,4 @@
-﻿package com.oa.statistics.service;
+package com.oa.statistics.service;
 
 import com.oa.statistics.dao.StatDao;
 import com.oa.statistics.entity.StatResultVO;

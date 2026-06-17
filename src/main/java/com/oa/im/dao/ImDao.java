@@ -1,4 +1,4 @@
-﻿package com.oa.im.dao;
+package com.oa.im.dao;
 
 import com.oa.im.entity.Conversation;
 import com.oa.im.entity.ImMessage;

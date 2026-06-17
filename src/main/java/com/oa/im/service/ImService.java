@@ -1,4 +1,4 @@
-﻿package com.oa.im.service;
+package com.oa.im.service;
 
 import com.oa.common.MyBatisUtil;
 import com.oa.im.dao.ImDao;

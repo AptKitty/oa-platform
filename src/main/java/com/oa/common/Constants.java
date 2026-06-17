@@ -1,4 +1,4 @@
-﻿package com.oa.common;
+package com.oa.common;
 
 /**
  * 系统常量

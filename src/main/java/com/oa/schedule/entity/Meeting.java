@@ -1,4 +1,4 @@
-﻿package com.oa.schedule.entity;
+package com.oa.schedule.entity;
 
 public class Meeting {
     private Long id;

@@ -1,4 +1,4 @@
-﻿package com.oa.ui.frame;
+package com.oa.ui.frame;
 
 import javax.swing.*;
 import com.oa.common.Constants;

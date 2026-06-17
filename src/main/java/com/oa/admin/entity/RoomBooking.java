@@ -1,4 +1,4 @@
-﻿package com.oa.admin.entity;
+package com.oa.admin.entity;
 
 public class RoomBooking {
     private Long id;

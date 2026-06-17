@@ -1,4 +1,4 @@
-﻿package com.oa.im.entity;
+package com.oa.im.entity;
 
 /**
  * IM会话 - 即时通讯模块（预留）

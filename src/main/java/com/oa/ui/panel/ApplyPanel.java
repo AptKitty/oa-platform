@@ -1,4 +1,4 @@
-﻿package com.oa.ui.panel;
+package com.oa.ui.panel;
 
 import javax.swing.*;
 import com.oa.common.MyBatisUtil;
@@ -126,7 +126,7 @@ public class ApplyPanel extends BasePanel {
             String formData = json.toString();
 
             // ⑤ 调用Service层发起审批
-            new WorkflowService().submitProcess(defId, currentUserId, formData);
+            new WorkflowService().submitProcess(defId, getCurrentUserId(), formData);
             showInfo("申请提交成功！");
         });
 

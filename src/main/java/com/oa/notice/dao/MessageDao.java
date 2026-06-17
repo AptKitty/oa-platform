@@ -1,4 +1,4 @@
-﻿package com.oa.notice.dao;
+package com.oa.notice.dao;
 
 import com.oa.notice.entity.Message;
 import org.apache.ibatis.annotations.Param;

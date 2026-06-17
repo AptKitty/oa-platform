@@ -7,9 +7,9 @@ import java.util.Map;
 
 public interface StatDao {
     Map<String, Object> getOverviewStats();
-    List<StatResultVO> getApprovalEfficiencyRanking(@Param(""month"") String month);
-    List<StatResultVO> getDeptAttendanceComparison(@Param(""year"") int year, @Param(""month"") int month);
-    List<StatResultVO> getLeaveTypeDistribution(@Param(""year"") int year, @Param(""month"") int month);
-    List<StatResultVO> getMonthlyApprovalTrend(@Param(""year"") int year);
+    List<StatResultVO> getApprovalEfficiencyRanking(@Param("month") String month);
+    List<StatResultVO> getDeptAttendanceComparison(@Param("year") int year, @Param("month") int month);
+    List<StatResultVO> getLeaveTypeDistribution(@Param("year") int year, @Param("month") int month);
+    List<StatResultVO> getMonthlyApprovalTrend(@Param("year") int year);
     List<StatResultVO> getDeptUserCount();
 }

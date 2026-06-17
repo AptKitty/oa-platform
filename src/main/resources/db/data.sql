@@ -124,3 +124,48 @@ INSERT INTO sys_menu (id, parent_id, menu_name, menu_code, menu_type, icon, sort
 
 INSERT INTO sys_role_menu (role_id, menu_id)
 SELECT 1, id FROM sys_menu;
+
+-- ==================== 会议室: 5间 ====================
+
+INSERT INTO adm_meeting_room (room_name, location, capacity, has_projector, has_microphone, status) VALUES
+('大会议室',   '3楼301', 20, 1, 1, 1),
+('小会议室A',  '2楼201', 8,  1, 0, 1),
+('小会议室B',  '2楼202', 8,  0, 0, 1),
+('洽谈室',    '1楼101', 4,  0, 0, 1),
+('培训室',    '4楼401', 50, 1, 1, 1);
+
+-- ==================== 车辆: 3辆 ====================
+
+INSERT INTO adm_vehicle (plate_number, vehicle_model, seats, status) VALUES
+('京A88888', '别克GL8',  7, 'IDLE'),
+('京B66666', '大众帕萨特', 5, 'IDLE'),
+('京C12345', '丰田凯美瑞', 5, 'IDLE');
+
+-- ==================== 资产: 5项 ====================
+
+INSERT INTO adm_asset (asset_name, asset_code, category, model, dept_id, keeper_id, status) VALUES
+('ThinkPad笔记本', 'AST001', '电子设备', 'ThinkPad X1', 2, 2, 'IDLE'),
+('投影仪',         'AST002', '电子设备', 'Epson CB-X51', 1, 1, 'IDLE'),
+('办公桌',         'AST003', '家具',     '1.6m实木',    2, 2, 'IDLE'),
+('打印机',         'AST004', '电子设备', 'HP M429fdw',  1, 1, 'IDLE'),
+('碎纸机',         'AST005', '办公设备', '得力9934',    5, 4, 'IDLE');
+
+-- ==================== 日程任务: 5个 ====================
+
+INSERT INTO sch_task (title, description, assigner_id, assignee_id, due_date, priority, status) VALUES
+('完成需求文档', '编写OA系统需求规格说明书', 1, 2, '2026-06-20', 'HIGH', 'IN_PROGRESS'),
+('数据库设计评审', '评审schema.sql设计', 1, 3, '2026-06-18', 'URGENT', 'TODO'),
+('前端UI联调', '各面板集成到MainFrame', 1, 4, '2026-06-22', 'NORMAL', 'TODO'),
+('测试用例编写', '编写核心模块测试用例', 2, 4, '2026-06-25', 'NORMAL', 'TODO'),
+('部署文档整理', '整理项目部署说明', 1, 2, '2026-06-30', 'LOW', 'TODO');
+
+-- ==================== 会议: 2个 ====================
+
+INSERT INTO sch_meeting (title, room_id, host_id, start_time, end_time, description, status) VALUES
+('项目进度周会', 1, 1, '2026-06-20 10:00:00', '2026-06-20 11:00:00', '讨论本周开发进度和下周计划', 'SCHEDULED'),
+('技术方案评审', 2, 3, '2026-06-21 14:00:00', '2026-06-21 16:00:00', '评审审批引擎技术方案', 'SCHEDULED');
+
+INSERT INTO sch_meeting_participant (meeting_id, user_id) VALUES
+(1, 1), (1, 2), (1, 3), (1, 4),
+(2, 1), (2, 3), (2, 4);
+

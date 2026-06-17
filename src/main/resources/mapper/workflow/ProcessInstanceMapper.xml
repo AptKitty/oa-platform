@@ -1,3 +1,82 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.oa.workflow.dao.ProcessInstanceDao"><!-- TODO --></mapper>
+<!--
+ 审批流程实例 Mapper XML
+ 对应 DAO: com.oa.workflow.dao.ProcessInstanceDao
+ 负责流程实例(wf_process_instance)的查询、新增、状态更新
+ 包含联表查询(JOIN wf_task)和动态SQL(if条件)技术
+ 成员2 编写
+-->
+<mapper namespace="com.oa.workflow.dao.ProcessInstanceDao">
+
+    <!-- ==================== 流程实例 ProcessInstance 映射 ==================== -->
+    <!-- ProcessInstance 不继承 BaseEntity，自己定义 id/createTime/updateTime -->
+    <resultMap id="ProcessInstanceMap" type="com.oa.workflow.entity.ProcessInstance"> 
+        <id property="id" column="id" />
+        <result property="defId" column="def_id" />
+        <result property="defName" column="def_name" />
+        <result property="templateId" column="template_id" />
+        <result property="applicantId" column="applicant_id" />
+        <result property="formData" column="form_data" />
+        <result property="status" column="status" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <!-- 根据ID查询单个流程实例 -->
+    <select id="findById" resultMap="ProcessInstanceMap">
+        select * from wf_process_instance where id = #{id}
+    </select>
+
+    <!-- 查询某申请人发起的流程实例(支持按状态筛选 + 分页) -->
+    <select id="findByApplicantId" resultMap="ProcessInstanceMap">
+        select * from wf_process_instance where applicant_id = #{applicantId}
+        <if test="status != null">
+            and status = #{status}
+        </if>
+        order by create_time desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <!-- 统计某申请人的流程实例数量(配合分页使用) -->
+    <select id="countByApplicantId" resultType="long">
+        select count(*) from wf_process_instance where applicant_id = #{applicantId}
+        <if test="status != null">
+            and status = #{status}
+        </if>
+    </select>
+
+    <!-- 查询某人的待审批列表：JOIN wf_task 找出该审批人的所有待处理任务 -->
+    <select id="findPendingByApproverId" resultMap="ProcessInstanceMap">
+        select pi.* 
+        from wf_process_instance pi
+        INNER JOIN wf_task t ON pi.id = t.instance_id
+        where t.assignee_id = #{approverId}
+            and t.status = 'PENDING'
+        order by create_time desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <!-- 统计某人待审批的流程实例数量 -->
+    <select id="countPendingByApproverId" resultType="long">
+        select count(*)
+        from wf_process_instance pi
+        INNER JOIN wf_task t ON pi.id = t.instance_id 
+        where t.assignee_id = #{approverId}
+        and t.status = 'PENDING'
+    </select>
+
+    <!-- 新增流程实例：发起审批时调用，自增ID回填到对象 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into wf_process_instance 
+            (def_id, def_name, template_id, applicant_id, form_data, status, create_time)
+        values 
+            (#{defId}, #{defName}, #{templateId}, #{applicantId}, #{formData}, #{status}, #{createTime})
+    </insert>
+
+    <!-- 更新流程实例状态(审批通过/驳回时调用)，同时更新update_time -->
+    <update id="updateStatus">
+        update wf_process_instance set status = #{status}, update_time = now() where id = #{id}
+    </update>
+
+</mapper>

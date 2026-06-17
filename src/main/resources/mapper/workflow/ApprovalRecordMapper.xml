@@ -1,3 +1,38 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.oa.workflow.dao.ProcessInstanceDao"></mapper>
+<!--
+ 审批记录 Mapper XML
+ 对应 DAO: com.oa.workflow.dao.ProcessInstanceDao (与 ProcessInstanceMapper 共享同一DAO)
+ 负责审批记录(wf_approval_record)的插入和查询
+ 每次审批操作(通过/驳回)都会插入一条记录，形成审批时间线
+ 成员2 编写
+-->
+<mapper namespace="com.oa.workflow.dao.ProcessInstanceDao">
+
+    <!-- ==================== 审批记录 ApprovalRecord 映射 ==================== -->
+    <!-- ApprovalRecord 不继承 BaseEntity，且没有 update_time(审批记录不可修改) -->
+    <resultMap id="ApprovalRecordMap" type="com.oa.workflow.entity.ApprovalRecord"> 
+        <id property="id" column="id" />
+        <result property="instanceId" column="instance_id" />
+        <result property="nodeId" column="node_id" />
+        <result property="nodeName" column="node_name" />
+        <result property="approverId" column="approver_id" />
+        <result property="action" column="action" />
+        <result property="comment" column="comment" />
+        <result property="attachments" column="attachments" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <!-- 插入审批记录：approve()/reject() 方法中调用，记录审批人的操作 -->
+    <insert id="insertApprovalRecord" useGeneratedKeys="true" keyProperty="id">
+        insert into wf_approval_record
+            (instance_id, node_id, node_name, approver_id, action, comment, attachments, create_time)
+        values
+            (#{instanceId}, #{nodeId}, #{nodeName}, #{approverId}, #{action}, #{comment}, #{attachments}, #{createTime})
+    </insert>
+
+    <!-- 查询某流程实例的全部审批记录(按时间排序，形成审批时间线) -->
+    <select id="findRecordsByInstanceId" resultMap="ApprovalRecordMap">
+        select * from wf_approval_record where instance_id = #{instanceId}
+    </select>
+</mapper>

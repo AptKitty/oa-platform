@@ -1,3 +1,93 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.oa.workflow.dao.ProcessDefinitionDao"><!-- TODO --></mapper>
+<!--
+ 审批流程定义与节点 Mapper XML
+ 对应 DAO: com.oa.workflow.dao.ProcessDefinitionDao
+ 负责流程定义(wf_process_definition)和审批节点(wf_process_node)的 CRUD 操作
+ 成员2 编写
+-->
+<mapper namespace="com.oa.workflow.dao.ProcessDefinitionDao">
+
+    <!-- ==================== 流程定义 ProcessDefinition 映射 ==================== -->
+    <resultMap id="ProcessDefinitionMap" type="com.oa.workflow.entity.ProcessDefinition"> 
+        <id property="id" column="id" />
+        <result property="defName" column="def_name" />
+        <result property="defCode" column="def_code" />
+        <result property="templateId" column="template_id" />
+        <result property="description" column="description" />
+        <result property="status" column="status" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <!-- 根据ID查询单个流程定义 -->
+    <select id="findById" resultMap="ProcessDefinitionMap">
+        select * from wf_process_definition where id = #{id}
+    </select>
+
+    <!-- 查询全部流程定义，按创建时间倒序 -->
+    <select id="findAll" resultMap="ProcessDefinitionMap">
+        select * from wf_process_definition ORDER BY create_time DESC
+    </select>
+
+    <!-- ==================== 审批节点 ProcessNode 映射 ==================== -->
+    <!-- 注意：wf_process_node 表没有 update_time 列(节点不可修改，只能删了重建) -->
+    <resultMap id="ProcessNodeMap" type="com.oa.workflow.entity.ProcessNode">
+        <id property="id" column="id" />
+        <result property="defId" column="def_id" />
+        <result property="nodeName" column="node_name" />
+        <result property="nodeType" column="node_type" />
+        <result property="approverType" column="approver_type" />
+        <result property="approverId" column="approver_id" />
+        <result property="approverRole" column="approver_role" />
+        <!-- condition_expr 和 conditionExpr 不完全符合下划线转驼峰规则，需显式映射 -->
+        <result property="conditionExpr" column="condition_expr" />
+        <result property="sortOrder" column="sort_order" />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+    
+    <!-- 查询某流程定义下的所有节点，按排序字段升序 -->
+    <select id="findNodesByDefId" resultMap="ProcessNodeMap">
+        select * from wf_process_node where def_id = #{defId} ORDER BY sort_order ASC
+    </select>
+    
+    <!-- 新增流程定义 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id"> 
+    insert into wf_process_definition
+        (def_name, def_code, template_id, description, status, create_time)
+    values
+        (#{defName}, #{defCode}, #{templateId}, #{description}, #{status}, #{createTime})
+    </insert>
+
+    <!-- 更新流程定义：使用动态SQL，只更新非null字段 -->
+    <update id="update">
+        update wf_process_definition
+        <set>
+            <if test="defName != null">def_name = #{defName},</if>
+            <if test="defCode != null">def_code = #{defCode},</if>
+            <if test="templateId != null">template_id = #{templateId},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updateTime != null">update_time = #{updateTime}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!-- 删除流程定义 -->
+    <delete id="deleteById">
+        delete from wf_process_definition where id = #{id}
+    </delete>
+
+    <!-- 新增审批节点：按排序字段决定节点在流程中的位置 -->
+    <insert id="insertNode" useGeneratedKeys="true" keyProperty="id">
+        insert into wf_process_node
+            (def_id, node_name, node_type, approver_type, approver_id, approver_role, condition_expr, sort_order)
+        values
+            (#{defId}, #{nodeName}, #{nodeType}, #{approverType}, #{approverId}, #{approverRole}, #{conditionExpr}, #{sortOrder})
+    </insert>
+
+    <!-- 删除流程定义下的所有节点(修改流程节点时先删后加) -->
+    <delete id="deleteNodesByDefId">
+        delete from wf_process_node where def_id = #{defId}
+    </delete>
+</mapper>

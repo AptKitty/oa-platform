@@ -1,3 +1,91 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.oa.workflow.dao.FormTemplateDao"><!-- TODO --></mapper>
+<!--
+ 表单模板与字段 Mapper XML
+ 对应 DAO: com.oa.workflow.dao.FormTemplateDao
+ 负责审批表单模板(wf_form_template)和表单字段(wf_form_field)的全部数据库操作
+ 成员2 编写
+-->
+<mapper namespace="com.oa.workflow.dao.FormTemplateDao">
+
+    <!-- ==================== 表单模板 FormTemplate 映射 ==================== -->
+    <!-- 将数据库列名(下划线)映射到 Java 属性名(驼峰) -->
+    <resultMap id="FormTemplateMap" type="com.oa.workflow.entity.FormTemplate"> 
+        <id column="id" property="id"/>
+        <result column="template_name" property="templateName"/>
+        <result column="template_code" property="templateCode"/>
+        <result column="description" property="description"/>
+        <result column="category" property="category"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 根据主键ID查询单个模板 -->
+    <select id="findById" resultMap="FormTemplateMap">
+        select * from wf_form_template where id = #{id}
+    </select>
+
+    <!-- 查询全部模板，按创建时间倒序(最新的在前) -->
+    <select id="findAll" resultMap="FormTemplateMap">
+        SELECT * FROM wf_form_template ORDER BY create_time DESC
+    </select>
+
+    <!-- ==================== 表单字段 FormField 映射 ==================== -->
+    <!-- 将数据库列名映射到 Java 属性名 -->
+    <resultMap id="FormFieldMap" type="com.oa.workflow.entity.FormField">
+        <id column="id" property="id"/>
+        <result column="template_id" property="templateId"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="field_label" property="fieldLabel"/>
+        <result column="field_type" property="fieldType"/>
+        <result column="is_required" property="isRequired"/>
+        <result column="options" property="options"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 根据模板ID查询该模板下所有字段，按排序字段升序排列 -->
+    <select id="findFieldsByTemplateId" resultMap="FormFieldMap">
+        select * from wf_form_field where template_id = #{templateId}
+        ORDER BY sort_order
+    </select>
+
+    <!-- 新增模板：useGeneratedKeys=true 让自增ID回填到对象的id属性中 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into wf_form_template 
+            (template_name, template_code, description, category, status, create_time)
+        values 
+            (#{templateName}, #{templateCode}, #{description}, #{category}, #{status}, #{createTime})
+    </insert>
+    
+    <!-- 更新模板：根据ID修改所有业务字段(不包含create_time) -->
+    <update id="update">
+        update wf_form_template
+        set template_name = #{templateName},
+            template_code = #{templateCode},
+            description = #{description},
+            category = #{category},
+            status = #{status}
+        where id = #{id}
+    </update>
+
+    <!-- 根据ID删除模板 -->
+    <delete id="deleteById">
+        delete from wf_form_template where id = #{id}
+    </delete>
+
+    <!-- 新增表单字段：将字段关联到指定模板 -->
+    <insert id="insertField" useGeneratedKeys="true" keyProperty="id">
+        insert into wf_form_field
+            (template_id, field_name, field_label, field_type, is_required, options, sort_order)
+        values
+            (#{templateId}, #{fieldName}, #{fieldLabel}, #{fieldType}, #{isRequired}, #{options}, #{sortOrder})
+    </insert>
+
+    <!-- 删除某模板下的所有字段(修改模板字段时先删后加) -->
+    <delete id="deleteFieldsByTemplateId">
+        delete from wf_form_field where template_id = #{templateId}
+    </delete>
+
+</mapper>

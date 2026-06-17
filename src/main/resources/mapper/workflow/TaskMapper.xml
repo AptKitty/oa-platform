@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+ 审批任务 Mapper XML
+ 对应 DAO: com.oa.workflow.dao.TaskDao
+ 负责审批任务(wf_task)的 CURD 操作
+ wf_task 是审批引擎的核心中间表：记录"哪个流程实例的哪个节点轮到谁审批"
+ 成员2 编写
+-->
+<mapper namespace="com.oa.workflow.dao.TaskDao">
+
+    <!-- ==================== 审批任务 Task 映射 ==================== -->
+    <!-- Task 不继承 BaseEntity(没有 update_time，用 complete_time 记录完成时间) -->
+    <resultMap id="BaseResultMap" type="com.oa.workflow.entity.Task">
+        <id property="id" column="id"/>
+        <result property="instanceId" column="instance_id"/>
+        <result property="nodeId" column="node_id"/>
+        <result property="nodeName" column="node_name"/>
+        <result property="assigneeId" column="assignee_id"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <!-- 任务完成时间：审批通过或驳回时记录 -->
+        <result property="completeTime" column="complete_time"/>
+    </resultMap>
+
+    <!-- 新增任务：submitProcess()和approve()前进节点时调用 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into wf_task 
+            (instance_id, node_id, node_name, assignee_id, status, create_time, complete_time)
+        values 
+            (#{instanceId}, #{nodeId}, #{nodeName}, #{assigneeId}, #{status}, #{createTime}, #{completeTime})
+    </insert>
+
+    <!-- 根据流程实例ID和审批人ID查找待处理任务：用于验证审批人权限 -->
+    <select id="findByInstanceAndAssignee" resultMap="BaseResultMap">
+        select * from wf_task where instance_id = #{instanceId} 
+            and assignee_id = #{assigneeId} 
+            and status = 'pending'
+    </select>
+
+    <!-- 查询某流程实例下的所有任务 -->
+    <select id="findByInstanceId" resultMap="BaseResultMap">
+        select * from wf_task where instance_id = #{instanceId}
+    </select>
+
+    <!-- 更新任务状态(APPROVED/REJECTED)，同时记录完成时间 -->
+    <update id="updateStatus">
+        update wf_task set status = #{status}, complete_time = #{completeTime} where id = #{id}
+    </update>
+
+    <!-- 统计某节点下还有多少待处理任务：会签(SIGN)时用来判断是否全部通过 -->
+    <select id="countPendingByNodeId" resultType="int">
+        select count(*) from wf_task where node_id = #{nodeId} and status = 'pending'
+    </select>
+
+</mapper>

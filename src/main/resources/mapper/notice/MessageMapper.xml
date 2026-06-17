@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    MessageMapper.xml — 站内消息 SQL 映射
+    对应 DAO: com.oa.notice.dao.MessageDao
+    表:     ntc_message
+    组员3 负责
+-->
+<mapper namespace="com.oa.notice.dao.MessageDao">
+
+    <!-- ==================== ntc_message 站内消息表 ==================== -->
+
+    <!-- 发送站内消息（senderId=0 表示系统发送） -->
+    <insert id="insert" parameterType="Message"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ntc_message (sender_id, receiver_id, title, content, msg_type)
+        VALUES (#{senderId}, #{receiverId}, #{title}, #{content}, #{msgType})
+    </insert>
+
+    <!-- 标记单条消息为已读 -->
+    <update id="markAsRead">
+        UPDATE ntc_message SET is_read = 1 WHERE id = #{id}
+    </update>
+
+    <!-- 一键全部标为已读 -->
+    <update id="markAllAsRead">
+        UPDATE ntc_message
+        SET is_read = 1
+        WHERE receiver_id = #{receiverId}
+          AND is_read = 0
+    </update>
+
+    <!-- 分页查询收件箱（支持已读/未读筛选，内容截断80字） -->
+    <select id="findByReceiverId" resultType="Message">
+        SELECT id, sender_id, receiver_id, title,
+               CASE WHEN LENGTH(content) > 80
+                    THEN CONCAT(LEFT(content, 80), '...')
+                    ELSE content
+               END AS content,
+               msg_type, is_read, create_time
+        FROM ntc_message
+        WHERE receiver_id = #{receiverId}
+        <if test="isRead != null">
+            AND is_read = #{isRead}       <!-- null=全部, 0=未读, 1=已读 -->
+        </if>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计消息数量（供分页用） -->
+    <select id="countByReceiverId" resultType="long">
+        SELECT COUNT(*) FROM ntc_message
+        WHERE receiver_id = #{receiverId}
+        <if test="isRead != null">
+            AND is_read = #{isRead}
+        </if>
+    </select>
+
+    <!-- 获取未读消息数（角标小红点用） -->
+    <select id="getUnreadCount" resultType="int">
+        SELECT COUNT(*) FROM ntc_message
+        WHERE receiver_id = #{receiverId}
+          AND is_read = 0
+    </select>
+
+</mapper>

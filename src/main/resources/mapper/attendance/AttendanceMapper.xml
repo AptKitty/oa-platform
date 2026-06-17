@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    AttendanceMapper.xml — 打卡记录 SQL 映射
+    对应 DAO: com.oa.attendance.dao.AttendanceDao
+    表:     att_clock_record
+    组员3 负责
+-->
+<mapper namespace="com.oa.attendance.dao.AttendanceDao">
+
+    <!-- ==================== att_clock_record 打卡记录表 ==================== -->
+
+    <!-- 插入一条打卡记录，自动回填主键 id -->
+    <insert id="insertClockRecord" parameterType="ClockRecord"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO att_clock_record (user_id, clock_type, clock_time, ip_address)
+        VALUES (#{userId}, #{clockType}, #{clockTime}, #{ipAddress})
+    </insert>
+
+    <!-- 按用户 + 时间范围查询打卡记录（用于判断今日是否已打卡） -->
+    <select id="findByUserIdAndDate" resultType="ClockRecord">
+        SELECT id, user_id, clock_type, clock_time, ip_address, create_time
+        FROM att_clock_record
+        WHERE user_id = #{userId}
+          AND clock_time BETWEEN #{start} AND #{end}
+        ORDER BY clock_time ASC
+    </select>
+
+    <!-- 月度统计：按日期分组，返回每天最早IN和最晚OUT -->
+    <select id="getMonthlyStats" resultType="map">
+        SELECT DATE(clock_time)          AS `date`,
+               MIN(CASE WHEN clock_type = 'IN'  THEN clock_time END) AS check_in_time,
+               MAX(CASE WHEN clock_type = 'OUT' THEN clock_time END) AS check_out_time
+        FROM att_clock_record
+        WHERE YEAR(clock_time)  = #{year}
+          AND MONTH(clock_time) = #{month}
+        GROUP BY DATE(clock_time)
+        ORDER BY `date` ASC
+    </select>
+
+    <!-- 统计今日已打卡次数（防重复打卡，最多2次） -->
+    <select id="countTodayClock" resultType="long">
+        SELECT COUNT(*)
+        FROM att_clock_record
+        WHERE user_id     = #{userId}
+          AND clock_time >= #{start}
+    </select>
+
+</mapper>

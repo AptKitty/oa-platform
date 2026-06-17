@@ -1,0 +1,65 @@
+﻿<?xml version=""1.0"" encoding=""UTF-8"" ?>
+<!DOCTYPE mapper PUBLIC ""-//mybatis.org//DTD Mapper 3.0//EN""
+        ""http://mybatis.org/dtd/mybatis-3-mapper.dtd"">
+<mapper namespace=""com.oa.statistics.dao.StatDao"">
+
+    <resultMap id=""statResult"" type=""com.oa.statistics.entity.StatResultVO"">
+        <result column=""name"" property=""name""/>
+        <result column=""value"" property=""value""/>
+        <result column=""label"" property=""label""/>
+    </resultMap>
+
+    <select id=""getOverviewStats"" resultType=""map"">
+        SELECT
+            (SELECT COUNT(*) FROM sys_user WHERE status = 1) AS totalUsers,
+            (SELECT COUNT(*) FROM sys_dept WHERE status = 1) AS totalDepts,
+            (SELECT COUNT(*) FROM wf_process_instance WHERE status = 'PENDING') AS pendingApprovals,
+            (SELECT COUNT(*) FROM wf_process_instance WHERE DATE(create_time) = CURDATE()) AS todayInstances
+    </select>
+
+    <select id=""getApprovalEfficiencyRanking"" resultMap=""statResult"">
+        SELECT u.real_name AS name, ROUND(AVG(TIMESTAMPDIFF(MINUTE, r.create_time, r.approve_time)), 1) AS value
+        FROM wf_approval_record r
+        LEFT JOIN sys_user u ON u.id = r.approver_id
+        WHERE DATE_FORMAT(r.create_time, '%Y-%m') = #{month}
+          AND r.action = 'APPROVE' AND r.approve_time IS NOT NULL
+        GROUP BY r.approver_id
+        ORDER BY value DESC
+    </select>
+
+    <select id=""getDeptAttendanceComparison"" resultMap=""statResult"">
+        SELECT d.dept_name AS name, COUNT(c.id) AS value
+        FROM sys_dept d
+        LEFT JOIN sys_user u ON u.dept_id = d.id
+        LEFT JOIN att_clock_record c ON c.user_id = u.id
+            AND YEAR(c.clock_time) = #{year} AND MONTH(c.clock_time) = #{month}
+        WHERE d.status = 1
+        GROUP BY d.id
+    </select>
+
+    <select id=""getLeaveTypeDistribution"" resultMap=""statResult"">
+        SELECT l.leave_type AS name, COUNT(*) AS value
+        FROM att_leave_request l
+        WHERE YEAR(l.create_time) = #{year} AND MONTH(l.create_time) = #{month}
+          AND l.status IN ('PASSED','APPROVING','PENDING')
+        GROUP BY l.leave_type
+    </select>
+
+    <select id=""getMonthlyApprovalTrend"" resultMap=""statResult"">
+        SELECT DATE_FORMAT(create_time, '%Y-%m') AS name, COUNT(*) AS value
+        FROM wf_process_instance
+        WHERE YEAR(create_time) = #{year}
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m')
+        ORDER BY name
+    </select>
+
+    <select id=""getDeptUserCount"" resultMap=""statResult"">
+        SELECT d.dept_name AS name, COUNT(u.id) AS value
+        FROM sys_dept d
+        LEFT JOIN sys_user u ON u.dept_id = d.id AND u.status = 1
+        WHERE d.status = 1
+        GROUP BY d.id
+        ORDER BY value DESC
+    </select>
+
+</mapper>

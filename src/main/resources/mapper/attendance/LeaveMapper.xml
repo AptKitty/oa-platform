@@ -1,0 +1,89 @@
+<?xml version = "1.0" encoding = "Utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        <!--
+    LeaveMapper.xml — 请假申请 + 额度 SQL 映射
+    对应 DAO: com.oa.attendance.dao.LeaveDao
+    表:     att_leave_request（请假申请）
+           att_leave_quota   （请假额度）
+    组员3 负责
+-->
+<mapper namespace = "com.oa.attendance.dao.LeaveDao">
+
+<!-- ==================== att_leave_request 请假申请表 ==================== -->
+
+<!-- 插入请假申请，自动回填主键 -->
+    <insert id = "insert" parameterType = "LeaveRequest"
+            useGeneratedKeys =  "true" keyProperty = "id">
+        INSERT INTO att_leave_request
+            (user_id, instance_id, leave_type, start_time, end_time, duration,  reason, status)
+        VALUES
+            (#{userId}, #{instanceId}, #{leaveType}, #{startTime}, #{endTime},
+            #{duration}, #{reason}, #{status})
+    </insert>
+
+<!--按id查询单条请假-->
+    <select id = "findById" resultType = "LeaveRequest">
+        SELECT id, user_id, instance_id, leave_type, 
+            start_time, end_time, duration, reason, status, create_time
+        FROM att_leave_request
+        WHERE id = #{id}
+    </select>
+
+<!--分页查询某用户的请假记录（最新在前）-->
+    <select id = "findByUserId" resultType = "LeaveRequest">
+        SELECT id, user_id, instance_id, leave_type, 
+            start_time, end_time, duration, reason, status, create_time
+        FROM att_leave_request
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limist}
+    </select>
+
+<!--统计某用户的请假总数-->
+    <select id = "countByUserId" resultType = "long">
+        SELECT COUNT(*) FROM att_leave_request WHERE user_id = #{userId}
+    </select>
+
+<!--更新请假状态（审批通过/驳回/取消）-->
+    <update id = "updateStatus">
+        UPDATE att_leave_request
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+
+<!-- ==================== att_leave_quota 请假额度表 ==================== -->
+
+<!--查询某用户某年所有类型的额度以及剩余 -->
+    <select id = "getQuota" resultType = "map">
+        SELECT  leave_type,
+                total_days,
+                used_days,
+                (total_days - used_days) AS remaining_days
+        FROM att_leave_quota
+        WHERE user_id = #{userId}
+        AND   year = #{year}
+    </select>
+
+<!--按类型精准查询额度（申请前校验用）-->
+    <select id = "getQuotaByType" resultType = "map">
+        SELECT  leave_type,
+                total_days,
+                used_days,
+                (total_days - used_days) AS remaining_days
+                FROM att_leave_quota
+        WHERE user_id = #{userId}
+        AND   year = #{year}
+        AND   leave_type = #{leaveType}
+    </select>
+
+<!--扣减请假额度（审批通过后调用），带防超扣保护 -->
+    <update id = "deductQuota">
+        UPDATE att_leave_quota
+        SET used_days = used_days + #{days}
+        WHERE user_id = #{userId}
+        AND   year = #{year}
+        AND   leave_type = #{leaveType}
+        AND   (total_days - used_days) >= #{days}  <!--防止扣成负数 -->
+    </update>
+</mapper>

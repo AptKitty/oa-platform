@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    NoticeMapper.xml - 公告 + 已读记录SQL映射
+    对应DAO：com.oa.dao.NitceDao
+    表：ntc_notice (公告)
+        ntc_notice_read (已读记录)
+    组员3 负责
+-->
+<mapper namespace="com.oa.notice.dao.NoticeDao">
+
+    <!-- ==================== ntc_notice 公告表 ==================== -->
+
+    <!-- 发布公告 -->
+    <insert id = "insert" parameterType = "Notice"
+            useGeneratedKeys = "true" keyProperty = "id">
+        INSERT INTO ntc_notice (title, content, publisher_id, is_top, status)
+        VALUES (#{title}, #{content}, #{publisherId}, #{isTop}, #{status})
+    </insert>
+
+    <!--编辑公告--> 
+    <update id = "update" parameterType = "Notice">
+        UPDATE ntc_notice
+        SET title = #{title},
+        content = #{content},
+        is_top = #{isTop},
+        status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <!--删除公告（物理删除）-->
+    <delete id = "deleteById">
+        DELETE FROM ntc_notice WHERE id = #{id}
+    </delete>
+    <!-- 按id查询公告详情（含完整富文本内容）-->
+    <select id = "findAll" resultType = "Notice">
+        SELECT id, title, content, publisher_id, is_top,
+                status, create_time, update_time
+        FROM ntc_notice
+        WHERE id = #{id}
+    </select>
+
+    <!-- 分页 + 关键字模糊搜索公告列表（内容截断100字）-->
+    <select id = "findAll" resultType = "Notice">
+        SELECT id, title,
+                CASE WHEN LENGTH(content) > 100
+                     THEN CONTENT(LEFT(content, 100), '...')
+                     ELSE content
+                END AS content,
+                publisher_id, is_top, status, create_time, update_time
+        FROM ntc_notice
+        WHERE status = 1 <!-- 只查已发布的 -->
+        <if test = "keyword != null and keyword !=''">
+            AND (title) LIKE CONCAT('%', #{keyword}, '%')
+                 OR content LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY is_top DESC, create_time DESC   <!-- 置顶优先 -->
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计公告总数（供分页用） -->
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM ntc_notice WHERE status = 1
+        <if test="keyword != null and keyword != ''">
+            AND (title   LIKE CONCAT('%', #{keyword}, '%')
+                 OR content LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+
+    <!-- ==================== ntc_notice_read 已读记录表 ==================== -->
+
+    <!-- 记录用户已读（INSERT IGNORE 防止重复标记） -->
+    <insert id="insertReadRecord">
+        INSERT IGNORE INTO ntc_notice_read (notice_id, user_id)
+        VALUES (#{noticeId}, #{userId})
+    </insert>
+
+    <!-- 统计某公告的已读人数 -->
+    <select id="getReadCount" resultType="int">
+        SELECT COUNT(*) FROM ntc_notice_read WHERE notice_id = #{noticeId}
+    </select>
+
+    <!-- 获取已读用户ID列表 -->
+    <select id="getReadUserIds" resultType="long">
+        SELECT user_id FROM ntc_notice_read WHERE notice_id = #{noticeId}
+    </select>
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oa.admin.dao.AdminDao">
+
+    <select id="findAllRooms" resultType="MeetingRoom">
+        SELECT * FROM adm_meeting_room ORDER BY id
+    </select>
+    <select id="findRoomById" resultType="MeetingRoom">
+        SELECT * FROM adm_meeting_room WHERE id = #{id}
+    </select>
+    <insert id="insertRoom" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO adm_meeting_room(room_name, location, capacity, has_projector, has_microphone, status)
+        VALUES(#{roomName}, #{location}, #{capacity}, #{hasProjector}, #{hasMicrophone}, #{status})
+    </insert>
+    <update id="updateRoom">
+        UPDATE adm_meeting_room
+        SET room_name=#{roomName}, location=#{location}, capacity=#{capacity},
+            has_projector=#{hasProjector}, has_microphone=#{hasMicrophone}, status=#{status}
+        WHERE id=#{id}
+    </update>
+    <delete id="deleteRoom">
+        DELETE FROM adm_meeting_room WHERE id=#{id}
+    </delete>
+    <select id="findAvailableRooms" resultType="MeetingRoom">
+        SELECT * FROM adm_meeting_room WHERE status = 1
+        AND id NOT IN (
+            SELECT room_id FROM adm_room_booking
+            WHERE status = 'BOOKED'
+            AND start_time &lt; #{end} AND end_time &gt; #{start}
+        )
+        ORDER BY id
+    </select>
+    <insert id="insertBooking" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO adm_room_booking(room_id, meeting_id, user_id, start_time, end_time, purpose, status)
+        VALUES(#{roomId}, #{meetingId}, #{userId}, #{startTime}, #{endTime}, #{purpose}, #{status})
+    </insert>
+    <select id="isTimeSlotAvailable" resultType="boolean">
+        SELECT COUNT(*) = 0 FROM adm_room_booking
+        WHERE room_id = #{roomId} AND status = 'BOOKED'
+        AND start_time &lt; #{end} AND end_time &gt; #{start}
+    </select>
+
+    <select id="findAllAssets" resultType="Asset">
+        SELECT * FROM adm_asset
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (asset_name LIKE CONCAT('%',#{keyword},'%') OR asset_code LIKE CONCAT('%',#{keyword},'%'))
+            </if>
+        </where>
+        ORDER BY id
+    </select>
+    <insert id="insertAsset" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO adm_asset(asset_name, asset_code, category, model, dept_id, keeper_id, status)
+        VALUES(#{assetName}, #{assetCode}, #{category}, #{model}, #{deptId}, #{keeperId}, #{status})
+    </insert>
+    <update id="updateAsset">
+        UPDATE adm_asset SET asset_name=#{assetName}, category=#{category}, model=#{model},
+            dept_id=#{deptId}, keeper_id=#{keeperId}, status=#{status} WHERE id=#{id}
+    </update>
+    <insert id="insertAssetRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO adm_asset_record(asset_id, user_id, action, action_time, remark)
+        VALUES(#{assetId}, #{userId}, #{action}, #{actionTime}, #{remark})
+    </insert>
+
+    <select id="findAllVehicles" resultType="Vehicle">
+        SELECT * FROM adm_vehicle ORDER BY id
+    </select>
+    <insert id="insertVehicle" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO adm_vehicle(plate_number, vehicle_model, seats, status)
+        VALUES(#{plateNumber}, #{vehicleModel}, #{seats}, #{status})
+    </insert>
+    <update id="updateVehicle">
+        UPDATE adm_vehicle SET plate_number=#{plateNumber}, vehicle_model=#{vehicleModel},
+            seats=#{seats}, status=#{status} WHERE id=#{id}
+    </update>
+    <insert id="insertVehicleRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO adm_vehicle_record(vehicle_id, user_id, start_time, end_time, destination, purpose)
+        VALUES(#{vehicleId}, #{userId}, #{startTime}, #{endTime}, #{destination}, #{purpose})
+    </insert>
+</mapper>

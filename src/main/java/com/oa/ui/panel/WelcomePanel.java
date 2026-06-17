@@ -148,10 +148,9 @@ public class WelcomePanel extends BasePanel {
 
     /** 异步加载所有摘要数据 */
     private void loadData() {
+        final Long userId = getCurrentUserId();
         runAsync(() -> {
             try {
-                Long userId = getCurrentUserId();
-
                 // 待审批数量
                 int pendingCount = workflowService.getPendingApprovals(userId, 1, 100).size();
                 SwingUtilities.invokeLater(() -> pendingApprovalLabel.setText(String.valueOf(pendingCount)));

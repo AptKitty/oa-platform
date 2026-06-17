@@ -40,8 +40,8 @@ public class ClockPanel extends BasePanel {
     public ClockPanel() {
         attendanceService = new AttendanceService();   // ✅ 修复：直接用具体类
         initUI();
-        loadTodayStatus();
-        loadRecentRecords();
+        loadTodayStatus(getCurrentUserId());
+        loadRecentRecords(getCurrentUserId());
         startClock();
     }
 
@@ -107,7 +107,7 @@ public class ClockPanel extends BasePanel {
         bottomPanel.add(new JScrollPane(recordTable), BorderLayout.CENTER);
 
         JButton refreshBtn = new JButton("刷新记录");
-        refreshBtn.addActionListener(e -> loadRecentRecords());
+        refreshBtn.addActionListener(e -> loadRecentRecords(getCurrentUserId()));
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnPanel.add(refreshBtn);
         bottomPanel.add(btnPanel, BorderLayout.SOUTH);
@@ -129,10 +129,10 @@ public class ClockPanel extends BasePanel {
     // ====== 打卡状态控制 ======
 
     /** 查询今日打卡状态，控制按钮的启用/禁用 */
-    private void loadTodayStatus() {
+    private void loadTodayStatus(Long userId) {
         try {
             Map<String, Object> todayRecord =
-                    attendanceService.getTodayRecord(getCurrentUserId());
+                    attendanceService.getTodayRecord(userId);
 
             if (todayRecord == null) {
                 // 今日完全未打卡
@@ -163,44 +163,42 @@ public class ClockPanel extends BasePanel {
 
     // ====== 打卡操作 ======
 
-    /** ???? */
+    /** 上班打卡 */
     private void doCheckIn() {
+        final Long userId = getCurrentUserId();
         runAsync(() -> {
             LocalDateTime now = LocalDateTime.now();
             try {
-                String result = attendanceService.checkIn(getCurrentUserId(), "??", now);
-                SwingUtilities.invokeLater(() -> {
-                    if (result.startsWith("??")) {
-                        showInfo(result);
-                        loadTodayStatus();
-                        loadRecentRecords();
-                    } else {
-                        showError(result);
-                    }
-                });
+                String result = attendanceService.checkIn(userId, "上班", now);
+                if (result.startsWith("成功")) {
+                    loadTodayStatus(userId);
+                    loadRecentRecords(userId);
+                    SwingUtilities.invokeLater(() -> showInfo(result));
+                } else {
+                    SwingUtilities.invokeLater(() -> showError(result));
+                }
             } catch (Exception e) {
-                SwingUtilities.invokeLater(() -> showError("?????" + e.getMessage()));
+                SwingUtilities.invokeLater(() -> showError("打卡异常：" + e.getMessage()));
             }
         });
     }
 
-    /** ???? */
+    /** 下班打卡 */
     private void doCheckOut() {
+        final Long userId = getCurrentUserId();
         runAsync(() -> {
             LocalDateTime now = LocalDateTime.now();
             try {
-                String result = attendanceService.checkIn(getCurrentUserId(), "??", now);
-                SwingUtilities.invokeLater(() -> {
-                    if (result.startsWith("??")) {
-                        showInfo(result);
-                        loadTodayStatus();
-                        loadRecentRecords();
-                    } else {
-                        showError(result);
-                    }
-                });
+                String result = attendanceService.checkIn(userId, "下班", now);
+                if (result.startsWith("成功")) {
+                    loadTodayStatus(userId);
+                    loadRecentRecords(userId);
+                    SwingUtilities.invokeLater(() -> showInfo(result));
+                } else {
+                    SwingUtilities.invokeLater(() -> showError(result));
+                }
             } catch (Exception e) {
-                SwingUtilities.invokeLater(() -> showError("?????" + e.getMessage()));
+                SwingUtilities.invokeLater(() -> showError("打卡异常：" + e.getMessage()));
             }
         });
     }
@@ -208,10 +206,10 @@ public class ClockPanel extends BasePanel {
     // ====== 打卡记录加载 ======
 
     /** 加载最近7天打卡记录到表格 */
-    private void loadRecentRecords() {
+    private void loadRecentRecords(Long userId) {
         try {
             List<Map<String, Object>> records =
-                    attendanceService.getRecentRecords(getCurrentUserId(), 7);
+                    attendanceService.getRecentRecords(userId, 7);
             tableModel.setRowCount(0);
             for (Map<String, Object> rec : records) {
                 Object date    = rec.get("attendanceDate");

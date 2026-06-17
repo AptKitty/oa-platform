@@ -30,6 +30,9 @@ public class MainFrame extends BaseFrame {
         workspacePanel.add(new ProcessDefPanel(), "PROCESS_DEF");
         workspacePanel.add(new ClockPanel(), "ATTENDANCE");
         workspacePanel.add(new LeavePanel(), "LEAVE");
+        workspacePanel.add(new NoticePanel(), "NOTICE");
+        workspacePanel.add(new AttendanceStatPanel(), "ATTENDANCE_STAT");
+        workspacePanel.add(new MessagePanel(), "MESSAGE");
         workspacePanel.add(new JLabel("欢迎使用OA协同办公平台", SwingConstants.CENTER), "WELCOME");
         workspaceLayout.show(workspacePanel, "APPLY");
 

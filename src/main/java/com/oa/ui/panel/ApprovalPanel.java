@@ -6,7 +6,10 @@ import java.awt.*;
 import com.oa.common.MyBatisUtil;
 import com.oa.workflow.service.WorkflowService;
 import com.oa.workflow.entity.ProcessInstance;
+import com.oa.workflow.entity.ProcessNode;
+import com.oa.workflow.dao.ProcessDefinitionDao;
 import com.oa.workflow.dao.ProcessInstanceDao;
+import com.oa.workflow.entity.ApprovalRecord;
 import java.util.List;
 
 /**
@@ -165,11 +168,106 @@ public class ApprovalPanel extends BasePanel {
         });
 
         // (5) 刷新界面
+        // 查询审批流程图数据
+        JPanel flowPanel = buildFlowChart(instance);
+        detailPanel.add(flowPanel, BorderLayout.NORTH);
         detailPanel.add(formPanel, BorderLayout.CENTER);
         detailPanel.revalidate();
         detailPanel.repaint();
     }
 
+    private JPanel buildFlowChart(ProcessInstance instance) { 
+        //1. 取数据
+        ProcessDefinitionDao defDao = MyBatisUtil.openSession().getMapper(ProcessDefinitionDao.class);
+        ProcessInstanceDao processInstanceDao = MyBatisUtil.openSession().getMapper(ProcessInstanceDao.class);
+
+        List<ProcessNode> nodes = defDao.findNodesByDefId(instance.getDefId());
+        List<ApprovalRecord> records = processInstanceDao.findRecordsByInstanceId(instance.getId());
+
+        //2. 构建面板（水平排列的节点卡片）
+        JPanel chart = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 10));
+        chart.setBackground(Color.WHITE);
+
+        //3. 遍历每个节点，画节点卡片
+        for (int i = 0; i < nodes.size(); i++) { 
+            ProcessNode node = nodes.get(i);
+
+            //3a. 判断当前节点状态
+            String status = getNodeStatus(node, records, instance.getStatus());
+
+            //3b. 创建节点卡片JPanel
+            chart.add(createNodeCard(node, status));
+
+            //3c. 节点之间加箭头（最后一个不加）
+            if (i < nodes.size() - 1) { 
+                chart.add(createArrow());
+            }
+        }
+        return chart;
+    }
+
+    private String getNodeStatus(ProcessNode node, List<ApprovalRecord> records, String instanceStatus) { 
+        //找这个节点对应的审批记录
+        for (ApprovalRecord rec : records) {
+            if (rec.getNodeId().equals(node.getId())){ 
+                //审批过了
+                if ("APPROVE".equals(rec.getAction())) {
+                    return "PASSED";
+                }
+                if ("REJECT".equals(rec.getAction())) {
+                    return "REJECTED";
+                }
+                if ("CC".equals(rec.getAction())) {
+                    return "CC_DONE";
+                }
+            }
+        }
+        //没找到记录->判断是不是当前正在等的节点
+        if ("APPROVING".equals(instanceStatus)) {
+            return "CURRENT"; // 当前卡在这
+        }
+        return "PENDING"; // 还没走到
+    }
+
+    private JPanel createNodeCard(ProcessNode node, String status) { 
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setPreferredSize(new Dimension(130, 80));
+
+        //颜色： 用过 = 绿、当前 = 黄、驳回 = 红、等待 = 灰
+        Color bgColor;
+        String icon;
+        switch (status) {
+            case "PASSED":   bgColor = new Color(200, 255, 200); icon = "已通过"; break;
+            case "CURRENT":  bgColor = new Color(255, 255, 200); icon = "审批中"; break;
+            case "REJECTED": bgColor = new Color(255, 200, 200); icon = "已驳回"; break;
+            case "CC_DONE":  bgColor = new Color(200, 220, 255); icon = "已抄送"; break;
+            default:         bgColor = new Color(230, 230, 230); icon = "待处理";
+        }
+        card.setBackground(bgColor);
+        card.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        JLabel nameLabel = new JLabel(node.getNodeName());
+        nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JLabel typeLabel = new JLabel("[" + node.getNodeType() + "]");
+        typeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel statusLabel = new JLabel(icon);
+        statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        card.add(nameLabel);
+        card.add(typeLabel);
+        card.add(statusLabel);
+
+        return card;
+    }
+
+    private JLabel createArrow() {
+        JLabel arrow = new JLabel("→");
+        arrow.setFont(new Font("Arial", Font.BOLD, 20));
+        arrow.setForeground(Color.GRAY);
+        return arrow;
+    }
     /**
      * 审批完成后重置操作区为初始状态
      * 清空表单数据和按钮，恢复"请选择待审批项"提示
@@ -180,6 +278,8 @@ public class ApprovalPanel extends BasePanel {
         detailPanel.revalidate();
         detailPanel.repaint();
     }
+
+
 
     @Override
     public String getPanelKey() { return "APPROVAL"; }

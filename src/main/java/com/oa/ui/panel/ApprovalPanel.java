@@ -29,7 +29,7 @@ public class ApprovalPanel extends BasePanel {
     private DefaultTableModel pendingTableModel;
 
     /** 审批操作区（下半部分，初始显示提示文字，选中后动态生成） */
-    private JPanel detailPanel;
+    private JPanel detailPanel;  
     /** 当前选中的流程实例ID（用于审批操作） */
     private Long selectedInstanceId;
     /** 审批服务实例（复用，避免每次创建） */

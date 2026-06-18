@@ -15,6 +15,7 @@ public class User extends BaseEntity {
     private Long deptId;
     private String position;
     private String avatar;
+    private java.time.LocalDate hireDate;
     private Integer status;
 
     // -- getters/setters --
@@ -34,6 +35,8 @@ public class User extends BaseEntity {
     public void setPosition(String position) { this.position = position; }
     public String getAvatar() { return avatar; }
     public void setAvatar(String avatar) { this.avatar = avatar; }
+    public java.time.LocalDate getHireDate() { return hireDate; }
+    public void setHireDate(java.time.LocalDate hireDate) { this.hireDate = hireDate; }
     public Integer getStatus() { return status; }
     public void setStatus(Integer status) { this.status = status; }
 }

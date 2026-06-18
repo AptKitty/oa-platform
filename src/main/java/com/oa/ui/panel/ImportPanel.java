@@ -43,7 +43,7 @@ public class ImportPanel extends BasePanel {
         add(centerPanel, BorderLayout.CENTER);
     }
 
-    private void importData(String type) {
+        private void importData(String type) {
         JFileChooser chooser = new JFileChooser();
         if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
@@ -52,10 +52,51 @@ public class ImportPanel extends BasePanel {
 
         try {
             ExportUtil.importFromExcel(file, row -> row, resultList);
-            showInfo("成功导入 " + resultList.size() + " 条" + type + "数据（演示模式，数据未写入数据库）");
+            int importedCount = 0;
+            if ("用户".equals(type)) {
+                importedCount = importUsers(resultList);
+            } else if ("资产".equals(type)) {
+                importedCount = importAssets(resultList);
+            }
+            showInfo("成功导入 " + importedCount + " 条" + type + "数据");
         } catch (Exception ex) {
             showError("导入失败: " + ex.getMessage());
         }
+    }
+
+    private int importUsers(List<String[]> rows) {
+        int count = 0;
+        com.oa.system.service.UserService userService = new com.oa.system.service.UserService();
+        for (String[] row : rows) {
+            if (row.length < 3) continue;
+            com.oa.system.entity.User user = new com.oa.system.entity.User();
+            user.setUsername(row[0]);
+            user.setPassword(com.oa.common.MD5Util.md5(row[1]));
+            user.setRealName(row[2]);
+            if (row.length > 3) user.setPhone(row[3]);
+            if (row.length > 4) user.setEmail(row[4]);
+            user.setStatus(1);
+            userService.add(user);
+            count++;
+        }
+        return count;
+    }
+
+    private int importAssets(List<String[]> rows) {
+        int count = 0;
+        com.oa.admin.service.AdminService adminService = new com.oa.admin.service.AdminService();
+        for (String[] row : rows) {
+            if (row.length < 3) continue;
+            com.oa.admin.entity.Asset asset = new com.oa.admin.entity.Asset();
+            asset.setAssetName(row[0]);
+            asset.setAssetCode(row[1]);
+            asset.setCategory(row[2]);
+            if (row.length > 3) asset.setModel(row[3]);
+            asset.setStatus("IDLE");
+            adminService.addAsset(asset);
+            count++;
+        }
+        return count;
     }
 
     public static void main(String[] args) {

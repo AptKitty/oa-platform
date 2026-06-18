@@ -239,6 +239,23 @@ public class ApplyPanel extends BasePanel {
             case "SELECT":
                 String[] options = parseOptions(field.getOptions());  // 解析 JSON 选项
                 return new JComboBox<>(options);                     // 下拉选择框
+            case "ATTACHMENT":
+                JPanel attPanel = new JPanel(new BorderLayout(5, 0));
+                attPanel.setOpaque(false);
+                JLabel fileLabel = new JLabel("未选择文件");
+                fileLabel.setForeground(Color.GRAY);
+                JButton chooseBtn = new JButton("选择文件");
+                chooseBtn.addActionListener(ev -> {
+                    JFileChooser fc = new JFileChooser();
+                    if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                        fileLabel.setText(fc.getSelectedFile().getAbsolutePath());
+                        fileLabel.setForeground(Color.BLACK);
+                    }
+                });
+                attPanel.add(fileLabel, BorderLayout.CENTER);
+                attPanel.add(chooseBtn, BorderLayout.EAST);
+                attPanel.putClientProperty("fileLabel", fileLabel);
+                return attPanel;
             default:
                 return new JTextField(15);           // 未知类型默认当文本处理
         }
@@ -289,6 +306,14 @@ public class ApplyPanel extends BasePanel {
             JViewport viewport = ((JScrollPane) comp).getViewport();
             JTextArea area = (JTextArea) viewport.getView();
             return area.getText();
+        } else if (comp instanceof JPanel) {
+            // ATTACHMENT: JPanel 内含 fileLabel
+            JLabel fileLabel = (JLabel) ((JPanel) comp).getClientProperty("fileLabel");
+            if (fileLabel != null) {
+                String path = fileLabel.getText();
+                return "未选择文件".equals(path) ? "" : path;
+            }
+            return "";
         }
         return "";
     }

@@ -1,6 +1,10 @@
 package com.oa.ui.frame;
 
 import com.oa.ui.panel.*;
+import com.oa.system.service.MenuService;
+import com.oa.system.entity.Menu;
+import java.util.Set;
+import java.util.HashSet;
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
@@ -12,6 +16,8 @@ public class MainFrame extends BaseFrame {
     private CardLayout workspaceLayout;
     // 面板工厂：key → 创建面板的 lambda，首次点击时才 new
     private Map<String, java.util.function.Supplier<JPanel>> panelFactories = new HashMap<>();
+    private Set<String> allowedMenuCodes = new HashSet<>();
+    private JPanel sidebarPanel;
 
     public MainFrame() {
         super("OA协同办公平台");
@@ -90,25 +96,28 @@ public class MainFrame extends BaseFrame {
         Color bg = new Color(45, 52, 63);
         Font font = new Font("Microsoft YaHei", Font.PLAIN, 14);
 
-        addBtn(p, "系统管理", "SYSTEM", fg, bg, font);
-        addBtn(p, "审批流程", "APPLY", fg, bg, font);
-        addBtn(p, "我的审批", "APPROVAL", fg, bg, font);
-        addBtn(p, "考勤打卡", "ATTENDANCE", fg, bg, font);
-        addBtn(p, "公告消息", "NOTICE", fg, bg, font);
-        addBtn(p, "日程任务", "SCHEDULE", fg, bg, font);
-        addBtn(p, "行政管理", "ADMIN", fg, bg, font);
-        addBtn(p, "统计大屏", "STATISTICS", fg, bg, font);
-        addBtn(p, "即时通讯", "IM", fg, bg, font);
-        addBtn(p, "工作台",    "WELCOME",  fg, bg, font);
-        addBtn(p, "资产管理", "ASSET",    fg, bg, font);
-        addBtn(p, "车辆管理", "VEHICLE",  fg, bg, font);
-        addBtn(p, "任务管理", "TASK",     fg, bg, font);
-        addBtn(p, "会议管理", "MEETING",  fg, bg, font);
-        addBtn(p, "数据导入", "IMPORT",   fg, bg, font);
+        addBtn(p, "系统管理", "SYSTEM", "SYSTEM", fg, bg, font);
+        addBtn(p, "审批流程", "APPLY", "WF_START", fg, bg, font);
+        addBtn(p, "我的审批", "APPROVAL", "WF_MY_APPROVAL", fg, bg, font);
+        addBtn(p, "考勤打卡", "ATTENDANCE", "ATT_CLOCK", fg, bg, font);
+        addBtn(p, "公告消息", "NOTICE", "NOTICE_LIST", fg, bg, font);
+        addBtn(p, "日程任务", "SCHEDULE", "SCH_CALENDAR", fg, bg, font);
+        addBtn(p, "行政管理", "ADMIN", "ADM_ROOM", fg, bg, font);
+        addBtn(p, "统计大屏", "STATISTICS", "STAT_OVERVIEW", fg, bg, font);
+        addBtn(p, "即时通讯", "IM", "IM_CHAT", fg, bg, font);
+        addBtn(p, "工作台",    "WELCOME", "WELCOME",  fg, bg, font);
+        addBtn(p, "资产管理", "ASSET", "ADM_ASSET",    fg, bg, font);
+        addBtn(p, "车辆管理", "VEHICLE", "ADM_VEHICLE",  fg, bg, font);
+        addBtn(p, "任务管理", "TASK", "SCH_TASK",     fg, bg, font);
+        addBtn(p, "会议管理", "MEETING", "SCH_MEETING",  fg, bg, font);
+        addBtn(p, "数据导入", "IMPORT", "SYSTEM",   fg, bg, font);
         return p;
     }
 
-    private void addBtn(JPanel parent, String text, String panelKey, Color fg, Color bg, Font font) {
+    private void addBtn(JPanel parent, String text, String panelKey, String menuCode, Color fg, Color bg, Font font) {
+        if (!allowedMenuCodes.isEmpty() && !allowedMenuCodes.contains(menuCode) && !"WELCOME".equals(panelKey)) {
+            return;
+        }
         JButton b = new JButton(text);
         b.setMaximumSize(new Dimension(200, 45));
         b.setForeground(fg);

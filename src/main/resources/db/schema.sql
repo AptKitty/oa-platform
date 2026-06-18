@@ -1,4 +1,4 @@
-﻿-- ===================================================
+-- ===================================================
 -- OA协同办公平台 数据库 DDL
 -- 创建时间: 2026-06-09
 -- ===================================================
@@ -34,6 +34,7 @@ CREATE TABLE sys_user (
     email       VARCHAR(100) DEFAULT NULL   COMMENT '邮箱',
     dept_id     BIGINT       DEFAULT NULL   COMMENT '所属部门ID',
     position    VARCHAR(50)  DEFAULT NULL   COMMENT '岗位',
+    hire_date   DATE         DEFAULT NULL   COMMENT '入职日期',
     avatar      VARCHAR(255) DEFAULT NULL   COMMENT '头像路径',
     status      TINYINT      DEFAULT 1      COMMENT '状态 1正常 0禁用',
     create_time DATETIME     DEFAULT CURRENT_TIMESTAMP,

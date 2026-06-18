@@ -121,6 +121,10 @@ public class UserManagePanel extends BasePanel {
             int idx = deptCombo.getSelectedIndex() - 1;
             if (idx < depts.size()) deptId = depts.get(idx).getId();
         }
+        // 数据权限: 非管理员只能看本部门
+        if (deptId == null && getCurrentUserDeptId() != null && getCurrentUserDeptId() != 1L) {
+            deptId = getCurrentUserDeptId();
+        }
         Integer status = null;
         int si = statusCombo.getSelectedIndex();
         if (si == 1) status = 1;

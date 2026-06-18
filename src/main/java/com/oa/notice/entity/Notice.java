@@ -4,6 +4,8 @@ public class Notice {
     private Long id;
     private String title;
     private String content;
+    private String contentHtml;
+    private java.time.LocalDateTime scheduledTime;
     private Long publisherId;
     private Integer isTop;
     private Integer status;
@@ -16,6 +18,10 @@ public class Notice {
     public void setTitle(String title) { this.title = title; }
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+    public String getContentHtml() { return contentHtml; }
+    public void setContentHtml(String contentHtml) { this.contentHtml = contentHtml; }
+    public java.time.LocalDateTime getScheduledTime() { return scheduledTime; }
+    public void setScheduledTime(java.time.LocalDateTime scheduledTime) { this.scheduledTime = scheduledTime; }
     public Long getPublisherId() { return publisherId; }
     public void setPublisherId(Long publisherId) { this.publisherId = publisherId; }
     public Integer getIsTop() { return isTop; }

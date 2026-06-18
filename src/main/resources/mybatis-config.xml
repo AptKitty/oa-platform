@@ -30,6 +30,7 @@
         <mapper resource="mapper/system/UserMapper.xml"/>
         <mapper resource="mapper/system/RoleMapper.xml"/>
         <mapper resource="mapper/system/DeptMapper.xml"/>
+        <mapper resource="mapper/system/AuditLogMapper.xml"/>
         <mapper resource="mapper/system/MenuMapper.xml"/>
         <mapper resource="mapper/workflow/FormTemplateMapper.xml"/>
         <mapper resource="mapper/workflow/ProcessDefinitionMapper.xml"/>

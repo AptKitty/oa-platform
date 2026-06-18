@@ -57,4 +57,40 @@ public class ExportUtil {
             throw new RuntimeException("导入失败: " + e.getMessage(), e);
         }
     }
+
+    public static void exportToPdf(JTable table, String title) {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setSelectedFile(new java.io.File(title + ".pdf"));
+        if (chooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) return;
+        try {
+            com.itextpdf.text.Document doc = new com.itextpdf.text.Document();
+            com.itextpdf.text.pdf.PdfWriter.getInstance(doc, new FileOutputStream(chooser.getSelectedFile()));
+            doc.open();
+            com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 16, com.itextpdf.text.Font.BOLD);
+            com.itextpdf.text.Font headerFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 10, com.itextpdf.text.Font.BOLD);
+            com.itextpdf.text.Font cellFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 10);
+
+            doc.add(new com.itextpdf.text.Paragraph(title, titleFont));
+            doc.add(new com.itextpdf.text.Paragraph(" "));
+
+            DefaultTableModel model = (DefaultTableModel) table.getModel();
+            int cols = model.getColumnCount();
+            com.itextpdf.text.pdf.PdfPTable pdfTable = new com.itextpdf.text.pdf.PdfPTable(cols);
+            pdfTable.setWidthPercentage(100);
+
+            for (int c = 0; c < cols; c++)
+                pdfTable.addCell(new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(model.getColumnName(c), headerFont)));
+            for (int r = 0; r < model.getRowCount(); r++)
+                for (int c = 0; c < cols; c++) {
+                    Object val = model.getValueAt(r, c);
+                    pdfTable.addCell(new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(val != null ? val.toString() : "", cellFont)));
+                }
+
+            doc.add(pdfTable);
+            doc.close();
+            JOptionPane.showMessageDialog(null, "PDF\u5bfc\u51fa\u6210\u529f");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "PDF\u5bfc\u51fa\u5931\u8d25: " + e.getMessage());
+        }
+    }
 }

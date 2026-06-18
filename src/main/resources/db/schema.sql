@@ -390,6 +390,20 @@ CREATE TABLE im_conversation_member (
 ) COMMENT '会话成员(IM预留)';
 
 -- 聊天消息
+-- ==================== 系统审计日志 ====================
+
+CREATE TABLE sys_audit_log (
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id     BIGINT       NOT NULL       COMMENT '操作人ID',
+    username    VARCHAR(50)  DEFAULT NULL   COMMENT '操作人用户名',
+    module      VARCHAR(50)  NOT NULL       COMMENT '操作模块',
+    action      VARCHAR(50)  NOT NULL       COMMENT '操作动作',
+    target      VARCHAR(200) DEFAULT NULL   COMMENT '操作目标',
+    detail      VARCHAR(500) DEFAULT NULL   COMMENT '操作详情',
+    ip_address  VARCHAR(50)  DEFAULT NULL   COMMENT '操作IP',
+    create_time DATETIME     DEFAULT CURRENT_TIMESTAMP
+) COMMENT '系统审计日志';
+
 CREATE TABLE im_message (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     conversation_id BIGINT      NOT NULL COMMENT '会话ID',

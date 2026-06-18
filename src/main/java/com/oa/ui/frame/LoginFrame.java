@@ -76,7 +76,7 @@ public class LoginFrame extends BaseFrame {
                 SwingUtilities.invokeLater(() -> {
                     setCurrentUser(user.getId(), user.getRealName());
                     MainFrame mainFrame = new MainFrame();
-                    mainFrame.setCurrentUser(user.getId(), user.getRealName());
+                    mainFrame.setCurrentUser(user.getId(), user.getRealName(), user.getDeptId());
                     mainFrame.initUI();
                     mainFrame.setVisible(true);
                     dispose();

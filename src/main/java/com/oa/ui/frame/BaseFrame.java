@@ -32,6 +32,11 @@ public abstract class BaseFrame extends JFrame {
         Constants.setCurrentUser(userId, username);
     }
 
+    public void setCurrentUser(Long userId, String username, Long deptId) {
+        setCurrentUser(userId, username);
+        Constants.setCurrentUserDeptId(deptId);
+    }
+
     /**
      * 初始化界面 - 子类实现
      */

@@ -19,6 +19,7 @@ public abstract class BasePanel extends JPanel {
 
     public Long getCurrentUserId()   { return Constants.getCurrentUserId(); }
     public String getCurrentUsername() { return Constants.getCurrentUsername(); }
+    public Long getCurrentUserDeptId() { return Constants.getCurrentUserDeptId(); }
 
     public abstract String getPanelKey();
     public abstract String getPanelTitle();

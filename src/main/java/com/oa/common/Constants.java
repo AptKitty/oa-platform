@@ -45,13 +45,28 @@ public final class Constants {
     public static final String CONVERSATION_PRIVATE = "PRIVATE";
     public static final String CONVERSATION_GROUP = "GROUP";
 
+    // ===== 考勤规则配置 =====
+    public static int ATTENDANCE_START_HOUR = 9;
+    public static int ATTENDANCE_START_MINUTE = 0;
+    public static int ATTENDANCE_END_HOUR = 18;
+    public static int ATTENDANCE_END_MINUTE = 0;
+
     // ===== 当前登录用户（线程绑定） =====
     private static final ThreadLocal<Long> CURRENT_USER = new ThreadLocal<>();
     private static final ThreadLocal<String> CURRENT_USERNAME = new ThreadLocal<>();
+    private static final ThreadLocal<Long> CURRENT_DEPT_ID = new ThreadLocal<>();
 
     public static void setCurrentUser(Long userId, String username) {
         CURRENT_USER.set(userId);
         CURRENT_USERNAME.set(username);
+    }
+
+    public static void setCurrentUserDeptId(Long deptId) {
+        CURRENT_DEPT_ID.set(deptId);
+    }
+
+    public static Long getCurrentUserDeptId() {
+        return CURRENT_DEPT_ID.get();
     }
 
     public static Long getCurrentUserId() {
@@ -65,5 +80,6 @@ public final class Constants {
     public static void clearCurrentUser() {
         CURRENT_USER.remove();
         CURRENT_USERNAME.remove();
+        CURRENT_DEPT_ID.remove();
     }
 }

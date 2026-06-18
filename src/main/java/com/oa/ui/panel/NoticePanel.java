@@ -139,6 +139,9 @@ public class NoticePanel extends BasePanel {
         JTextArea contentArea = new JTextArea(8, 40);
         contentArea.setLineWrap(true);
         JCheckBox topCheck = new JCheckBox("置顶");
+        JTextField schedDateField = new JTextField(10);
+        JTextField schedTimeField = new JTextField(6);
+        schedTimeField.setText("09:00");
 
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         JPanel formPanel = new JPanel(new GridBagLayout());
@@ -155,6 +158,15 @@ public class NoticePanel extends BasePanel {
         formPanel.add(new JScrollPane(contentArea), gbc);
         gbc.gridx = 1; gbc.gridy = 2;
         formPanel.add(topCheck, gbc);
+        gbc.gridx = 0; gbc.gridy = 3;
+        formPanel.add(new JLabel("定时发布："), gbc);
+        gbc.gridx = 1; gbc.gridy = 3;
+        JPanel schedPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        schedPanel.add(new JLabel("日期(yyyy-MM-dd):"));
+        schedPanel.add(schedDateField);
+        schedPanel.add(new JLabel("时间(HH:mm):"));
+        schedPanel.add(schedTimeField);
+        formPanel.add(schedPanel, gbc);
         panel.add(formPanel, BorderLayout.CENTER);
 
         if (JOptionPane.OK_OPTION != JOptionPane.showConfirmDialog(this, panel,
@@ -169,6 +181,11 @@ public class NoticePanel extends BasePanel {
             notice.setContent(content);
             notice.setPublisherId(getCurrentUserId());
             notice.setIsTop(topCheck.isSelected() ? 1 : 0);
+            String schedDate = schedDateField.getText().trim();
+            String schedTime = schedTimeField.getText().trim();
+            if (!schedDate.isEmpty() && !schedTime.isEmpty()) {
+                notice.setScheduledTime(java.time.LocalDateTime.parse(schedDate + "T" + schedTime + ":00"));
+            }
             notice.setStatus(1);
             noticeService.publish(notice);
             showInfo("公告发布成功！");

@@ -33,8 +33,8 @@ public class ClockPanel extends BasePanel {
     // ====== 常量 ======
     private static final DateTimeFormatter TIME_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private static final LocalTime STANDARD_START_TIME = LocalTime.of(9, 0, 0);
-    private static final LocalTime STANDARD_END_TIME   = LocalTime.of(18, 0, 0);
+    private static LocalTime getStandardStart() { return LocalTime.of(com.oa.common.Constants.ATTENDANCE_START_HOUR, com.oa.common.Constants.ATTENDANCE_START_MINUTE, 0); }
+    private static LocalTime getStandardEnd()   { return LocalTime.of(com.oa.common.Constants.ATTENDANCE_END_HOUR, com.oa.common.Constants.ATTENDANCE_END_MINUTE, 0); }
 
     // ====== 构造 ======
     public ClockPanel() {

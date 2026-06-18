@@ -5,6 +5,7 @@ import com.oa.attendance.dao.LeaveDao;
 import com.oa.attendance.entity.*;
 import com.oa.common.MyBatisUtil;
 import com.oa.common.BusinessException;
+import com.oa.common.Constants;
 import org.apache.ibatis.session.SqlSession;
 
 import java.time.LocalDate;
@@ -23,8 +24,8 @@ import java.util.*;
 public class AttendanceService {
 
     // 标准上下班时间（可后移到 Constants）
-    private static final LocalTime STANDARD_START = LocalTime.of(9, 0);
-    private static final LocalTime STANDARD_END   = LocalTime.of(18, 0);
+    private static LocalTime getStandardStart() { return LocalTime.of(Constants.ATTENDANCE_START_HOUR, Constants.ATTENDANCE_START_MINUTE); }
+    private static LocalTime getStandardEnd()   { return LocalTime.of(Constants.ATTENDANCE_END_HOUR, Constants.ATTENDANCE_END_MINUTE); }
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     // ==================== 打卡相关 ==================== //
@@ -90,11 +91,11 @@ public class AttendanceService {
             // 迟到/早退判定
             if ("IN".equals(typeCode)) {
                 long lateMin = java.time.Duration.
-                        between(STANDARD_START, clockTime.toLocalTime()).toMinutes();
+                        between(getStandardStart(), clockTime.toLocalTime()).toMinutes();
                 return lateMin > 0 ? "成功（迟到 " + lateMin + " 分钟）" : "成功";
             } else {
                 long earlyMin = java.time.Duration.
-                        between(clockTime.toLocalTime(),STANDARD_END).toMinutes();
+                        between(clockTime.toLocalTime(),getStandardEnd()).toMinutes();
                 return earlyMin > 0 ? "成功（早退 " + earlyMin + " 分钟）" : "成功";
             }
         } catch (BusinessException e) {
@@ -164,14 +165,14 @@ public class AttendanceService {
             if ("IN".equals(r.getClockType())) {
                 row.put("checkInTime", r.getClockTime().toLocalTime().format(TIME_FMT));
                 LocalTime t = r.getClockTime().toLocalTime();
-                row.put("status", t.isAfter(STANDARD_START) ? "迟到" : "正常");
+                row.put("status", t.isAfter(getStandardStart()) ? "迟到" : "正常");
             }
 
             if ("OUT".equals(r.getClockType())) {
                 row.put("checkOutTime", r.getClockTime().toLocalTime().format(TIME_FMT));
                 LocalTime t = r.getClockTime().toLocalTime();
                if (!"迟到".equals(row.get("status"))) {
-                    row.put("status", t.isBefore(STANDARD_END) ? "早退" : "正常");
+                    row.put("status", t.isBefore(getStandardEnd()) ? "早退" : "正常");
                 }
             }
         }

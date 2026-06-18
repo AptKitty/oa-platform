@@ -51,6 +51,12 @@ public abstract class BasePanel extends JPanel {
             JButton exportBtn = new JButton("导出Excel");
             exportBtn.addActionListener(e -> onExport.run());
             toolbar.add(exportBtn);
+            JButton pdfBtn = new JButton("导出PDF");
+            pdfBtn.addActionListener(e -> {
+                JTable tbl = findTable(this);
+                if (tbl != null) com.oa.common.ExportUtil.exportToPdf(tbl, "报表导出");
+            });
+            toolbar.add(pdfBtn);
         }
         return toolbar;
     }
@@ -73,4 +79,15 @@ public abstract class BasePanel extends JPanel {
 
     protected static final int TEXT_FIELD_WIDTH = 15;
     protected static final int BUTTON_HEIGHT = 28;
+
+    private static JTable findTable(java.awt.Container container) {
+        for (java.awt.Component c : container.getComponents()) {
+            if (c instanceof JTable) return (JTable) c;
+            if (c instanceof java.awt.Container) {
+                JTable t = findTable((java.awt.Container) c);
+                if (t != null) return t;
+            }
+        }
+        return null;
+    }
 }

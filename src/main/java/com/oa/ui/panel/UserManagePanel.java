@@ -1,4 +1,4 @@
-package com.oa.ui.panel;
+﻿package com.oa.ui.panel;
 
 import com.oa.common.ExportUtil;
 import com.oa.common.PageResult;
@@ -89,6 +89,9 @@ public class UserManagePanel extends BasePanel {
         JButton resetBtn = new JButton("重置密码");
         resetBtn.addActionListener(e -> resetPassword());
         toolbar.add(resetBtn);
+        JButton roleBtn = new JButton("分配角色");
+        roleBtn.addActionListener(e -> showRoleDialog());
+        toolbar.add(roleBtn);
         bottomPanel.add(toolbar, BorderLayout.WEST);
 
         JPanel pagePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 5));
@@ -270,6 +273,47 @@ public class UserManagePanel extends BasePanel {
         dialog.setVisible(true);
     }
 
+        /** 弹出对话框，给选中用户分配角色 */
+    private void showRoleDialog() {
+        int row = table.getSelectedRow();
+        if (row < 0) { showError("请先选择一条记录"); return; }
+        Long userId = (Long) tableModel.getValueAt(row, 0);
+        String userName = (String) tableModel.getValueAt(row, 2);
+
+        // 获取所有角色 + 该用户已有角色
+        List<Role> allRoles = roleService.getAllRoles();
+        List<Role> userRoles = roleService.getUserRoles(userId);
+        Set<Long> userRoleIds = new HashSet<>();
+        for (Role r : userRoles) userRoleIds.add(r.getId());
+
+        // 构建checkbox面板
+        JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        List<JCheckBox> boxes = new ArrayList<>();
+        for (Role role : allRoles) {
+            JCheckBox cb = new JCheckBox(role.getRoleName() + " (" + role.getRoleCode() + ")");
+            cb.setSelected(userRoleIds.contains(role.getId()));
+            boxes.add(cb);
+            panel.add(cb);
+        }
+
+        int result = JOptionPane.showConfirmDialog(this, panel,
+                "分配角色 - " + userName, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result != JOptionPane.OK_OPTION) return;
+
+        // 收集选中的角色ID
+        List<Long> selectedIds = new ArrayList<>();
+        for (int i = 0; i < boxes.size(); i++) {
+            if (boxes.get(i).isSelected()) selectedIds.add(allRoles.get(i).getId());
+        }
+        try {
+            roleService.assignRoles(userId, selectedIds);
+            showInfo("角色分配成功");
+        } catch (Exception ex) {
+            showError("分配失败: " + ex.getMessage());
+        }
+    }
+
     private void deleteUser() {
         int row = table.getSelectedRow();
         if (row < 0) { showError("请先选择一条记录"); return; }
@@ -293,3 +337,4 @@ public class UserManagePanel extends BasePanel {
         } catch (Exception ex) { showError(ex.getMessage()); }
     }
 }
+

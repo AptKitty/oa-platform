@@ -1,4 +1,4 @@
-package com.oa.ui.panel;
+﻿package com.oa.ui.panel;
 
 import com.oa.system.entity.Menu;
 import com.oa.system.entity.Role;
@@ -6,14 +6,16 @@ import com.oa.system.service.MenuService;
 import com.oa.system.service.RoleService;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
 
 /**
  * 角色权限分配面板 — 角色列表 + 菜单权限树(checkbox)
+ * 单击即可切换勾选状态，无需双击
  */
 public class RolePermissionPanel extends BasePanel {
 
@@ -42,6 +44,7 @@ public class RolePermissionPanel extends BasePanel {
     public String getPanelTitle() { return "角色权限"; }
 
     private void initUI() {
+        // 左侧：角色列表
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.setPreferredSize(new Dimension(200, 0));
         leftPanel.setBorder(BorderFactory.createTitledBorder("角色列表"));
@@ -51,17 +54,34 @@ public class RolePermissionPanel extends BasePanel {
         leftPanel.add(new JScrollPane(roleList), BorderLayout.CENTER);
         add(leftPanel, BorderLayout.WEST);
 
+        // 右侧：菜单权限树
         JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setBorder(BorderFactory.createTitledBorder("菜单权限"));
+        rightPanel.setBorder(BorderFactory.createTitledBorder("菜单权限（单击勾选/取消）"));
         menuRoot = new DefaultMutableTreeNode("全部菜单");
         menuTreeModel = new DefaultTreeModel(menuRoot);
         menuTree = new JTree(menuTreeModel);
-        menuTree.setCellRenderer(new CheckboxTreeCellRenderer());
-        menuTree.setCellEditor(new CheckboxTreeCellEditor());
-        menuTree.setEditable(true);
+        menuTree.setCellRenderer(new CheckboxTreeRenderer());
+        menuTree.setToggleClickCount(0); // 展开/折叠也只需单击
         JScrollPane treeScroll = new JScrollPane(menuTree);
         rightPanel.add(treeScroll, BorderLayout.CENTER);
 
+        // 单击切换checkbox状态
+        menuTree.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = menuTree.getRowForLocation(e.getX(), e.getY());
+                if (row < 0) return;
+                TreePath path = menuTree.getPathForRow(row);
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                if (node.getUserObject() instanceof Menu) {
+                    Menu m = (Menu) node.getUserObject();
+                    m.setStatus(m.getStatus() == 1 ? 0 : 1); // 切换勾选
+                    menuTree.repaint();
+                }
+            }
+        });
+
+        // 保存按钮
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton saveBtn = new JButton("保存权限");
         saveBtn.addActionListener(e -> savePermissions());
@@ -85,12 +105,14 @@ public class RolePermissionPanel extends BasePanel {
         menuRoot.removeAllChildren();
         allMenus = menuService.findAll();
         menuNodeMap = new HashMap<>();
-        Map<Long, Menu> menuMap = new HashMap<>();
+
+        // 创建所有节点
         for (Menu m : allMenus) {
-            menuMap.put(m.getId(), m);
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(m);
             menuNodeMap.put(m.getId(), node);
         }
+
+        // 建立父子关系
         for (Menu m : allMenus) {
             DefaultMutableTreeNode node = menuNodeMap.get(m.getId());
             if (m.getParentId() == null || m.getParentId() == 0 || !menuNodeMap.containsKey(m.getParentId())) {
@@ -99,6 +121,7 @@ public class RolePermissionPanel extends BasePanel {
                 menuNodeMap.get(m.getParentId()).add(node);
             }
         }
+
         menuTreeModel.reload();
         for (int i = 0; i < menuTree.getRowCount(); i++) menuTree.expandRow(i);
     }
@@ -107,95 +130,68 @@ public class RolePermissionPanel extends BasePanel {
         int idx = roleList.getSelectedIndex();
         if (idx < 0) return;
         Role role = roles.get(idx);
+
+        // 先全部取消勾选
+        for (Menu m : allMenus) m.setStatus(0);
+
+        // 再勾选该角色已有的菜单
         List<Menu> roleMenus = menuService.findByRoleId(role.getId());
         Set<Long> checkedIds = new HashSet<>();
         for (Menu m : roleMenus) checkedIds.add(m.getId());
-        updateAllCheckStates(menuRoot, checkedIds);
-        menuTree.repaint();
-    }
+        for (Menu m : allMenus) {
+            if (checkedIds.contains(m.getId())) m.setStatus(1);
+        }
 
-    private void updateAllCheckStates(DefaultMutableTreeNode node, Set<Long> checkedIds) {
-        Object obj = node.getUserObject();
-        if (obj instanceof Menu) {
-            ((Menu) obj).setStatus(checkedIds.contains(((Menu) obj).getId()) ? 1 : 0);
-        }
-        for (int i = 0; i < node.getChildCount(); i++) {
-            updateAllCheckStates((DefaultMutableTreeNode) node.getChildAt(i), checkedIds);
-        }
+        menuTree.repaint();
     }
 
     private void savePermissions() {
         int idx = roleList.getSelectedIndex();
         if (idx < 0) { showError("请先选择一个角色"); return; }
         Role role = roles.get(idx);
+
         List<Long> checkedIds = new ArrayList<>();
-        collectChecked(menuRoot, checkedIds);
+        for (Menu m : allMenus) {
+            if (m.getStatus() != null && m.getStatus() == 1) {
+                checkedIds.add(m.getId());
+            }
+        }
+
         try {
             menuService.assignMenus(role.getId(), checkedIds);
             showInfo("权限保存成功");
-        } catch (Exception ex) { showError(ex.getMessage()); }
-    }
-
-    private void collectChecked(DefaultMutableTreeNode node, List<Long> ids) {
-        Object obj = node.getUserObject();
-        if (obj instanceof Menu && ((Menu) obj).getStatus() == 1) {
-            ids.add(((Menu) obj).getId());
-        }
-        for (int i = 0; i < node.getChildCount(); i++) {
-            collectChecked((DefaultMutableTreeNode) node.getChildAt(i), ids);
+        } catch (Exception ex) {
+            showError("保存失败: " + ex.getMessage());
         }
     }
 
-    private static class CheckboxTreeCellRenderer extends JCheckBox implements javax.swing.tree.TreeCellRenderer {
+    // ==================== Checkbox 树渲染器 ====================
+
+    private static class CheckboxTreeRenderer extends JCheckBox implements TreeCellRenderer {
+        private static final Color SELECTION_BG = new Color(184, 207, 229);
+
         @Override
         public Component getTreeCellRendererComponent(JTree tree, Object value,
                                                       boolean selected, boolean expanded,
                                                       boolean leaf, int row, boolean hasFocus) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
             Object obj = node.getUserObject();
+
             if (obj instanceof Menu) {
                 Menu m = (Menu) obj;
-                setText(m.getMenuName() + ("BUTTON".equals(m.getMenuType()) ? " [按钮]" : ""));
+                String label = m.getMenuName();
+                if ("BUTTON".equals(m.getMenuType())) label += " [按钮]";
+                setText(label);
                 setSelected(m.getStatus() != null && m.getStatus() == 1);
             } else {
                 setText(obj.toString());
                 setSelected(false);
             }
+
             setOpaque(true);
-            setBackground(selected ? new Color(184, 207, 229) : Color.WHITE);
+            setBackground(selected ? SELECTION_BG : Color.WHITE);
+            setForeground(Color.BLACK);
             return this;
-        }
-    }
-
-    private class CheckboxTreeCellEditor extends DefaultCellEditor implements javax.swing.tree.TreeCellEditor {
-        private JCheckBox checkBox;
-        private DefaultMutableTreeNode currentNode;
-
-        public CheckboxTreeCellEditor() {
-            super(new JCheckBox());
-            this.checkBox = (JCheckBox) editorComponent;
-            checkBox.addItemListener(e -> {
-                if (currentNode != null && currentNode.getUserObject() instanceof Menu) {
-                    ((Menu) currentNode.getUserObject()).setStatus(checkBox.isSelected() ? 1 : 0);
-                }
-                stopCellEditing();
-            });
-        }
-
-        @Override
-        public Component getTreeCellEditorComponent(JTree tree, Object value,
-                                                     boolean isSelected, boolean expanded,
-                                                     boolean leaf, int row) {
-            currentNode = (DefaultMutableTreeNode) value;
-            Object obj = currentNode.getUserObject();
-            if (obj instanceof Menu) {
-                checkBox.setText(((Menu) obj).getMenuName());
-                checkBox.setSelected(((Menu) obj).getStatus() != null && ((Menu) obj).getStatus() == 1);
-            } else {
-                checkBox.setText(obj.toString());
-                checkBox.setSelected(false);
-            }
-            return checkBox;
         }
     }
 }

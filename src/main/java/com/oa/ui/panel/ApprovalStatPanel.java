@@ -81,6 +81,8 @@ public class ApprovalStatPanel extends BasePanel {
             CategoryPlot plot = (CategoryPlot) chart.getPlot();
             plot.getDomainAxis().setLabelFont(labelFont);
             plot.getDomainAxis().setTickLabelFont(tickFont);
+            plot.getDomainAxis().setCategoryLabelPositions(
+                org.jfree.chart.axis.CategoryLabelPositions.UP_45);
             plot.getRangeAxis().setLabelFont(labelFont);
             plot.getRangeAxis().setTickLabelFont(tickFont);
         }
@@ -104,3 +106,4 @@ public class ApprovalStatPanel extends BasePanel {
         frame.setVisible(true);
     }
 }
+

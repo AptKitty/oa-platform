@@ -2,15 +2,14 @@
 
 import com.oa.ui.panel.*;
 import com.oa.common.Constants;
-import com.oa.system.service.MenuService;
-import com.oa.system.entity.Menu;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class MainFrame extends BaseFrame {
 
@@ -18,6 +17,13 @@ public class MainFrame extends BaseFrame {
     private CardLayout workspaceLayout;
     private java.util.Map<String, java.util.function.Supplier<JPanel>> panelFactories = new java.util.HashMap<>();
     private Set<String> allowedMenuCodes = new HashSet<>();
+
+    // 导航历史
+    private String currentPanelKey;
+    private Deque<String> backStack = new ArrayDeque<>();
+    private Deque<String> forwardStack = new ArrayDeque<>();
+    private JButton backBtn;
+    private JButton forwardBtn;
 
     public MainFrame() {
         super("OA协同办公平台");
@@ -62,11 +68,28 @@ public class MainFrame extends BaseFrame {
 
         add(workspacePanel, BorderLayout.CENTER);
 
-        // 底部状态栏
-        JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // 底部状态栏：后退 + 前进 + 用户信息 + 退出登录
+        JPanel bar = new JPanel(new BorderLayout());
         bar.setBorder(BorderFactory.createEtchedBorder());
-        bar.add(new JLabel("当前用户: " + currentUsername));
 
+        // 左侧：导航按钮 + 用户信息
+        JPanel leftBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+
+        backBtn = new JButton("< 后退");
+        backBtn.setEnabled(false);
+        backBtn.addActionListener(e -> goBack());
+        leftBar.add(backBtn);
+
+        forwardBtn = new JButton("前进 >");
+        forwardBtn.setEnabled(false);
+        forwardBtn.addActionListener(e -> goForward());
+        leftBar.add(forwardBtn);
+
+        leftBar.add(new JLabel("当前用户: " + currentUsername));
+        bar.add(leftBar, BorderLayout.WEST);
+
+        // 右侧：退出登录
+        JPanel rightBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 2));
         JButton logoutBtn = new JButton("退出登录");
         logoutBtn.addActionListener(e -> {
             if (confirm("确定要退出登录吗？")) {
@@ -78,7 +101,9 @@ public class MainFrame extends BaseFrame {
                 });
             }
         });
-        bar.add(logoutBtn);
+        rightBar.add(logoutBtn);
+        bar.add(rightBar, BorderLayout.EAST);
+
         add(bar, BorderLayout.SOUTH);
     }
 
@@ -87,7 +112,7 @@ public class MainFrame extends BaseFrame {
         workspacePanel.add(new JPanel(), key);
     }
 
-    // ==================== 顶部菜单栏（与侧边栏分组同步） ====================
+    // ==================== 顶部菜单栏 ====================
 
     private JMenuBar createMenuBar() {
         JMenuBar mb = new JMenuBar();
@@ -144,9 +169,7 @@ public class MainFrame extends BaseFrame {
         return mb;
     }
 
-    /** 添加一个下拉菜单，子项受权限过滤 */
     private void addMenu(JMenuBar mb, String title, String[][] items) {
-        // 过滤有权限的子项
         List<JMenuItem> visible = new ArrayList<>();
         for (String[] item : items) {
             String menuCode = item[2];
@@ -154,12 +177,11 @@ public class MainFrame extends BaseFrame {
                     || allowedMenuCodes.contains(menuCode)) {
                 JMenuItem mi = new JMenuItem(item[0]);
                 String panelKey = item[1];
-                mi.addActionListener(e -> showPanel(panelKey));
+                mi.addActionListener(e -> navigateTo(panelKey));
                 visible.add(mi);
             }
         }
         if (visible.isEmpty()) return;
-
         JMenu menu = new JMenu(title);
         for (JMenuItem mi : visible) menu.add(mi);
         mb.add(menu);
@@ -240,12 +262,6 @@ public class MainFrame extends BaseFrame {
         return sidebar;
     }
 
-    /**
-     * 添加一个可折叠的分组
-     * @param title    分组标题（纯文本，不含emoji）
-     * @param expanded 是否默认展开
-     * @param items    子项数组，每项 {显示文字, panelKey, menuCode}
-     */
     private void addGroup(JPanel parent, String title, boolean expanded,
                           Color fg, Color bg, Font font, String[][] items) {
         List<String[]> visibleItems = new ArrayList<>();
@@ -258,7 +274,6 @@ public class MainFrame extends BaseFrame {
         }
         if (visibleItems.isEmpty()) return;
 
-        // 分组标题按钮
         JButton headerBtn = new JButton((expanded ? "- " : "+ ") + title);
         headerBtn.setMaximumSize(new Dimension(210, 38));
         headerBtn.setForeground(new Color(180, 180, 180));
@@ -269,7 +284,6 @@ public class MainFrame extends BaseFrame {
         headerBtn.setFont(font.deriveFont(Font.BOLD, 13f));
         headerBtn.setMargin(new Insets(0, 15, 0, 0));
 
-        // 子项面板
         JPanel subPanel = new JPanel();
         subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
         subPanel.setBackground(bg);
@@ -286,7 +300,7 @@ public class MainFrame extends BaseFrame {
             btn.setHorizontalAlignment(SwingConstants.LEFT);
             btn.setFont(subFont);
             String panelKey = item[1];
-            btn.addActionListener(e -> showPanel(panelKey));
+            btn.addActionListener(e -> navigateTo(panelKey));
             subPanel.add(btn);
         }
 
@@ -302,17 +316,52 @@ public class MainFrame extends BaseFrame {
         parent.add(subPanel);
     }
 
-    // ==================== 权限 & 面板切换 ====================
+    // ==================== 导航历史（前进/后退） ====================
 
-    public void setAllowedMenuCodes(Set<String> codes) {
-        this.allowedMenuCodes = codes;
+    /** 导航到面板（记录历史） */
+    public void navigateTo(String key) {
+        if (key == null || key.equals(currentPanelKey)) return;
+
+        // 当前面板压入后退栈
+        if (currentPanelKey != null) {
+            backStack.push(currentPanelKey);
+        }
+        // 清空前进栈（新导航意味着旧的前进路径失效）
+        forwardStack.clear();
+
+        switchToPanel(key);
     }
 
-    public void registerPanel(String key, JPanel panel) {
-        workspacePanel.add(panel, key);
+    /** 后退 */
+    private void goBack() {
+        if (backStack.isEmpty()) return;
+        // 当前面板压入前进栈
+        forwardStack.push(currentPanelKey);
+        // 从后退栈弹出上一个面板
+        String prevKey = backStack.pop();
+        switchToPanel(prevKey);
     }
 
-    public void showPanel(String key) {
+    /** 前进 */
+    private void goForward() {
+        if (forwardStack.isEmpty()) return;
+        // 当前面板压入后退栈
+        backStack.push(currentPanelKey);
+        // 从前进栈弹出下一个面板
+        String nextKey = forwardStack.pop();
+        switchToPanel(nextKey);
+    }
+
+    /** 更新后退/前进按钮状态 */
+    private void updateNavButtons() {
+        backBtn.setEnabled(!backStack.isEmpty());
+        forwardBtn.setEnabled(!forwardStack.isEmpty());
+    }
+
+    // ==================== 面板切换（核心） ====================
+
+    /** 切换到指定面板（不记录历史） */
+    public void switchToPanel(String key) {
         java.util.function.Supplier<JPanel> factory = panelFactories.get(key);
         if (factory != null) {
             JPanel realPanel = factory.get();
@@ -324,7 +373,22 @@ public class MainFrame extends BaseFrame {
         }
         workspaceLayout.show(workspacePanel, key);
         workspacePanel.revalidate();
+        currentPanelKey = key;
+        updateNavButtons();
+    }
+
+    /** 外部调用（如登陆后默认跳转） */
+    public void showPanel(String key) {
+        navigateTo(key);
+    }
+
+    // ==================== 权限 ====================
+
+    public void setAllowedMenuCodes(Set<String> codes) {
+        this.allowedMenuCodes = codes;
+    }
+
+    public void registerPanel(String key, JPanel panel) {
+        workspacePanel.add(panel, key);
     }
 }
-
-

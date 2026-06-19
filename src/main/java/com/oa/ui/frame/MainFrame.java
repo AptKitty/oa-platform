@@ -315,6 +315,16 @@ public class MainFrame extends BaseFrame {
             headerBtn.setText((nowVisible ? "- " : "+ ") + title);
             parent.revalidate();
             parent.repaint();
+            // 通知祖先 JScrollPane 重新计算滚动条
+            Container c = parent.getParent();
+            while (c != null) {
+                if (c instanceof JScrollPane) {
+                    c.revalidate();
+                    c.repaint();
+                    break;
+                }
+                c = c.getParent();
+            }
         });
 
         parent.add(headerBtn);

@@ -10,6 +10,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class MainFrame extends BaseFrame {
 
@@ -117,13 +119,6 @@ public class MainFrame extends BaseFrame {
     private JMenuBar createMenuBar() {
         JMenuBar mb = new JMenuBar();
 
-        addMenu(mb, "系统管理", new String[][]{
-            {"用户管理", "SYSTEM", "USER_MANAGE"},
-            {"部门管理", "DEPT_MANAGE", "DEPT_MANAGE"},
-            {"角色权限", "ROLE_PERM", "ROLE_PERMISSION"},
-            {"数据导入", "IMPORT", "SYSTEM"},
-        });
-
         addMenu(mb, "流程审批", new String[][]{
             {"发起申请", "APPLY", "WF_START"},
             {"我的审批", "APPROVAL", "WF_MY_APPROVAL"},
@@ -162,6 +157,13 @@ public class MainFrame extends BaseFrame {
             {"考勤汇总", "ATTENDANCE_STAT", "ATT_STAT"},
         });
 
+        addMenu(mb, "系统管理", new String[][]{
+            {"用户管理", "SYSTEM", "USER_MANAGE"},
+            {"部门管理", "DEPT_MANAGE", "DEPT_MANAGE"},
+            {"角色权限", "ROLE_PERM", "ROLE_PERMISSION"},
+            {"数据导入", "IMPORT", "SYSTEM"},
+        });
+
         addMenu(mb, "即时通讯", new String[][]{
             {"聊天窗口", "IM", "IM_CHAT"},
         });
@@ -184,6 +186,30 @@ public class MainFrame extends BaseFrame {
         if (visible.isEmpty()) return;
         JMenu menu = new JMenu(title);
         for (JMenuItem mi : visible) menu.add(mi);
+
+        // 鼠标悬停自动展开下拉菜单
+        menu.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                menu.setPopupMenuVisible(true);
+            }
+        });
+        // 鼠标离开菜单区域时延迟关闭
+        menu.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent e) {
+                // 使用 invokeLater 延迟关闭，给用户时间移到下拉项上
+                SwingUtilities.invokeLater(() -> {
+                    if (!menu.isPopupMenuVisible()) return;
+                    Point p = MouseInfo.getPointerInfo().getLocation();
+                    SwingUtilities.convertPointFromScreen(p, menu);
+                    if (!menu.getBounds().contains(p)) {
+                        menu.setPopupMenuVisible(false);
+                    }
+                });
+            }
+        });
+
         mb.add(menu);
     }
 
@@ -259,7 +285,14 @@ public class MainFrame extends BaseFrame {
                 {"聊天窗口", "IM", "IM_CHAT"},
             });
 
-        return sidebar;
+        // 用 JScrollPane 包裹侧边栏，支持上下滚动
+        JScrollPane scrollPane = new JScrollPane(sidebar);
+        scrollPane.setBorder(null);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setPreferredSize(new Dimension(210, 0));
+        return scrollPane;
     }
 
     private void addGroup(JPanel parent, String title, boolean expanded,

@@ -298,6 +298,28 @@ public class CalendarPanel extends BasePanel {
                 typeLabel.setForeground(Color.GRAY);
                 row.add(typeLabel, BorderLayout.EAST);
 
+                // 删除按钮 X
+                JButton delBtn = new JButton("X");
+                delBtn.setFont(new Font("Microsoft YaHei", Font.BOLD, 11));
+                delBtn.setForeground(Color.RED);
+                delBtn.setBorderPainted(false);
+                delBtn.setContentAreaFilled(false);
+                delBtn.setFocusPainted(false);
+                delBtn.setToolTipText("删除: " + e.getTitle());
+                delBtn.addActionListener(ev -> {
+                    if (JOptionPane.showConfirmDialog(CalendarPanel.this,
+                            "确认删除日程\n\"" + e.getTitle() + "\" ?",
+                            "确认删除", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                        scheduleService.deleteEvent(e.getId());
+                        renderView();
+                    }
+                });
+                JPanel eastPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 0));
+                eastPanel.setOpaque(false);
+                eastPanel.add(typeLabel);
+                eastPanel.add(delBtn);
+                row.add(eastPanel, BorderLayout.EAST);
+
                 // 双击编辑
                 row.addMouseListener(new java.awt.event.MouseAdapter() {
                     public void mouseClicked(java.awt.event.MouseEvent ev) {
@@ -315,19 +337,8 @@ public class CalendarPanel extends BasePanel {
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton addBtn = new JButton("+ 当天新增日程");
         addBtn.addActionListener(e -> addEventForDate(selectedDate));
-        JButton delBtn = new JButton("删除选中日程");
-        delBtn.addActionListener(e -> {
-            // 简单方式：弹出输入框问ID
-            String idStr = JOptionPane.showInputDialog(this, "输入要删除的日程ID：");
-            if (idStr != null && !idStr.isEmpty()) {
-                try {
-                    scheduleService.deleteEvent(Long.parseLong(idStr));
-                    renderView();
-                } catch (Exception ex) { showError("删除失败: " + ex.getMessage()); }
-            }
-        });
         bottom.add(addBtn);
-        bottom.add(delBtn);
+        bottom.add(new JLabel("  双击日程可编辑，点击右侧 X 可删除"));
         calendarGrid.add(bottom, BorderLayout.SOUTH);
 
         calendarGrid.revalidate();

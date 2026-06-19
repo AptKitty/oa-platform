@@ -1,4 +1,4 @@
-﻿package com.oa.ui.panel;
+package com.oa.ui.panel;
 
 import com.oa.statistics.service.StatService;
 import com.oa.statistics.entity.StatResultVO;

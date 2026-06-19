@@ -1,4 +1,4 @@
-﻿package com.oa.ui.panel;
+package com.oa.ui.panel;
 
 import com.oa.common.ExportUtil;
 import com.oa.common.PageResult;
@@ -13,6 +13,9 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.ArrayList;
 
 /**
  * 用户管理面板 — 增删改查 + 分页 + 导出
@@ -337,4 +340,5 @@ public class UserManagePanel extends BasePanel {
         } catch (Exception ex) { showError(ex.getMessage()); }
     }
 }
+
 

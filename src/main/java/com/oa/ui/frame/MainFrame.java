@@ -1,4 +1,4 @@
-﻿package com.oa.ui.frame;
+package com.oa.ui.frame;
 
 import com.oa.ui.panel.*;
 import com.oa.common.Constants;

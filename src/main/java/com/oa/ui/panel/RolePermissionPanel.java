@@ -1,4 +1,4 @@
-﻿package com.oa.ui.panel;
+package com.oa.ui.panel;
 
 import com.oa.system.entity.Menu;
 import com.oa.system.entity.Role;

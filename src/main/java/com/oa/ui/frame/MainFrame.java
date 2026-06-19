@@ -191,10 +191,9 @@ public class MainFrame extends BaseFrame {
     // ==================== 折叠分组侧边栏 ====================
 
     private JScrollPane createSidebar() {
-        JPanel sidebar = new JPanel();
-        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
+        Box sidebar = Box.createVerticalBox();
         sidebar.setBackground(new Color(45, 52, 63));
-        sidebar.setPreferredSize(new Dimension(210, 1));
+        sidebar.setOpaque(true);
 
         Color fg = new Color(200, 200, 200);
         Color bg = new Color(45, 52, 63);
@@ -264,10 +263,11 @@ public class MainFrame extends BaseFrame {
         scrollPane.setBorder(null);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(20);
         return scrollPane;
     }
 
-    private void addGroup(JPanel parent, String title, boolean expanded,
+    private void addGroup(java.awt.Container parent, String title, boolean expanded,
                           Color fg, Color bg, Font font, String[][] items) {
         List<String[]> visibleItems = new ArrayList<>();
         for (String[] item : items) {

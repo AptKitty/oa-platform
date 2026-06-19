@@ -14,4 +14,5 @@ public interface RoleDao {
                        @org.apache.ibatis.annotations.Param("roleId") Long roleId);
     int deleteUserRoles(Long userId);
     java.util.List<Long> findUserIdsByRoleCode(String roleCode);
+    java.util.List<Long> findRoleIdsByUserId(Long userId);
 }

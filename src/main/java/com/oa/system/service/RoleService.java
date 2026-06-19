@@ -22,6 +22,11 @@ public class RoleService {
   public List<Menu> getUserMenus(Long userId) {
     try (SqlSession s = MyBatisUtil.openSession()) { return s.getMapper(MenuDao.class).findByUserId(userId); }
   }
+  public java.util.Set<Long> findRoleIdsByUserId(Long userId) {
+    try (SqlSession s = MyBatisUtil.openSession()) {
+      return new java.util.HashSet<>(s.getMapper(RoleDao.class).findRoleIdsByUserId(userId));
+    }
+  }
   public void assignRoles(Long userId, List<Long> roleIds) {
     try (SqlSession s = MyBatisUtil.openSession(false)) {
       RoleDao dao = s.getMapper(RoleDao.class);

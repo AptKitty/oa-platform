@@ -17,13 +17,13 @@ INSERT INTO sys_dept (id, parent_id, dept_name, dept_code, sort_order, status) V
 -- 密码 MD5("admin") = 21232f297a57a5a743894a0e4a801fc3
 
 -- 补充审批人用户（对应 init_data.sql 中的 approver_id=2~6，密码均为 123456）
-INSERT INTO sys_user (id, username, password, real_name, phone, email, dept_id, leader_id, position, hire_date, status) VALUES
-(2, 'zhangjl', 'e10adc3949ba59abbe56e057f20f883e', '张经理', '2024-03-15', '13800000002', 'zhangjl@oa.com', 2, '部门经理', 1),
-(3, 'lizj',    'e10adc3949ba59abbe56e057f20f883e', '李总监', '2023-06-01', '13800000003', 'lizj@oa.com',   1, '技术总监', 1),
-(4, 'wanghr',  'e10adc3949ba59abbe56e057f20f883e', '王HR',   '2024-09-01', '13800000004', 'wanghr@oa.com', 5, '人事专员', 1),
-(5, 'zhaocw',  'e10adc3949ba59abbe56e057f20f883e', '赵财务', '2024-06-15', '13800000005', 'zhaocw@oa.com', 4, '财务专员', 1),
-(6, 'sunxz',   'e10adc3949ba59abbe56e057f20f883e', '孙行政', '2024-09-01', '13800000006', 'sunxz@oa.com',  5, '行政专员', 1);
-INSERT INTO sys_user (id, username, password, real_name, phone, email, dept_id, leader_id, position, hire_date, status) VALUES
+INSERT INTO sys_user (id, username, password, real_name, phone, email, dept_id, position, hire_date, status) VALUES
+(2, 'zhangjl', 'e10adc3949ba59abbe56e057f20f883e', '张经理', '13800000002', 'zhangjl@oa.com', 2, '部门经理', '2024-03-15', 1),
+(3, 'lizj',    'e10adc3949ba59abbe56e057f20f883e', '李总监', '13800000003', 'lizj@oa.com',   1, '技术总监', '2023-06-01', 1),
+(4, 'wanghr',  'e10adc3949ba59abbe56e057f20f883e', '王HR',   '13800000004', 'wanghr@oa.com', 5, '人事专员', '2024-09-01', 1),
+(5, 'zhaocw',  'e10adc3949ba59abbe56e057f20f883e', '赵财务', '13800000005', 'zhaocw@oa.com', 4, '财务专员', '2024-06-15', 1),
+(6, 'sunxz',   'e10adc3949ba59abbe56e057f20f883e', '孙行政', '13800000006', 'sunxz@oa.com',  5, '行政专员', '2024-09-01', 1);
+INSERT INTO sys_user (id, username, password, real_name, phone, email, dept_id, position, hire_date, status) VALUES
 (1, 'admin', '21232f297a57a5a743894a0e4a801fc3', '系统管理员', '13800000000', 'admin@oa.com', 1, '系统管理员', '2024-01-01', 1);
 
 -- ==================== 角色: 5种 ====================
@@ -64,6 +64,7 @@ INSERT INTO sys_menu (id, parent_id, menu_name, menu_code, menu_type, icon, sort
 (11, 1, '用户管理',     'USER_MANAGE',      'MENU',   NULL, 1, 1),
 (12, 1, '部门管理',     'DEPT_MANAGE',      'MENU',   NULL, 2, 1),
 (13, 1, '角色权限',     'ROLE_PERMISSION',  'MENU',   NULL, 3, 1),
+(14, 1, '数据导入', 'IMPORT', 'MENU', NULL, 4, 1),
 (101,11,'新增用户',     'USER_ADD',         'BUTTON', NULL, 1, 1),
 (102,11,'编辑用户',     'USER_EDIT',        'BUTTON', NULL, 2, 1),
 (103,11,'删除用户',     'USER_DELETE',      'BUTTON', NULL, 3, 1),
@@ -77,6 +78,8 @@ INSERT INTO sys_menu (id, parent_id, menu_name, menu_code, menu_type, icon, sort
 (21, 2, '发起审批',     'WF_START',         'MENU',   NULL, 1, 1),
 (22, 2, '我的审批',     'WF_MY_APPROVAL',   'MENU',   NULL, 2, 1),
 (23, 2, '流程定义',     'WF_DEFINITION',    'MENU',   NULL, 3, 1),
+(24, 2, '我的申请', 'MY_APPLICATIONS', 'MENU', NULL, 4, 1),
+(25, 2, '审批模板', 'FORM_TEMPLATE', 'MENU', NULL, 5, 1),
 (201,21,'提交申请',     'WF_SUBMIT',        'BUTTON', NULL, 1, 1),
 (202,22,'审批通过',     'WF_APPROVE',       'BUTTON', NULL, 1, 1),
 (203,22,'审批拒绝',     'WF_REJECT',        'BUTTON', NULL, 2, 1);
@@ -142,6 +145,7 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (3, 41), (3, 42),
 (3, 51), (3, 53),
 (3, 81), (3, 82);
+(3, 14), (3, 24), (3, 25),
 
 -- ==================== 给HR分配菜单权限 ====================
 -- 流程审批(发起+我的申请) + 考勤管理(全部) + 公告消息 + 日程任务(日程+会议) + 统计大屏(概览+考勤) + 即时通讯
@@ -152,6 +156,7 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (4, 51), (4, 53),
 (4, 71), (4, 73),
 (4, 81), (4, 82);
+(4, 14), (4, 24), (4, 25),
 
 -- ==================== 给财务/行政分配菜单权限 ====================
 -- 流程审批(发起+我的申请+我的审批) + 考勤管理(打卡+请假) + 公告消息 + 日程任务(日程+会议) + 行政管理(全部) + 即时通讯
@@ -162,6 +167,7 @@ INSERT INTO sys_role_menu (role_id, menu_id) VALUES
 (5, 51), (5, 53),
 (5, 61), (5, 62), (5, 63),
 (5, 81), (5, 82);
+(5, 14), (5, 24),
 
 -- ==================== 会议室: 5间 ====================
 
@@ -215,8 +221,7 @@ INSERT INTO att_leave_quota (user_id, year, leave_type, total_days, used_days) V
 (3, 2026, '??', 10, 0), (3, 2026, '??', 5, 0), (3, 2026, '??', 5, 0), (3, 2026, '??', 3, 0), (3, 2026, '??', 15, 0), (3, 2026, '??', 3, 0),
 (4, 2026, '??', 10, 0), (4, 2026, '??', 5, 0), (4, 2026, '??', 5, 0), (4, 2026, '??', 3, 0), (4, 2026, '??', 15, 0), (4, 2026, '??', 3, 0),
 (5, 2026, '??', 10, 0), (5, 2026, '??', 5, 0), (5, 2026, '??', 5, 0), (5, 2026, '??', 3, 0), (5, 2026, '??', 15, 0), (5, 2026, '??', 3, 0),
-(6, 2026, '??', 10, 0), (6, 2026, '??', 5, 0), (6, 2026, '??', 5, 0), (6, 2026, '??', 3, 0), (6, 2026, '??', 15, 0), (6, 2026, '??', 3, 0),
-(7, 2026, '??', 10, 0), (7, 2026, '??', 5, 0), (7, 2026, '??', 5, 0), (7, 2026, '??', 3, 0), (7, 2026, '??', 15, 0), (7, 2026, '??', 3, 0)
+(6, 2026, '??', 10, 0), (6, 2026, '??', 5, 0), (6, 2026, '??', 5, 0), (6, 2026, '??', 3, 0), (6, 2026, '??', 15, 0), (6, 2026, '??', 3, 0)
 ON DUPLICATE KEY UPDATE total_days=VALUES(total_days);
 
 

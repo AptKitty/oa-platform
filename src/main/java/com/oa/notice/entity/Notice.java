@@ -7,7 +7,8 @@ public class Notice {
     private String contentHtml;
     private String attachment;
     private java.time.LocalDateTime scheduledTime;
-    private Long publisherId;
+        private Long publisherId;
+    private String publisherName; // ?????(?????)
     private Integer isTop;
     private Integer status;
     private java.time.LocalDateTime createTime;
@@ -25,6 +26,8 @@ public class Notice {
     public void setScheduledTime(java.time.LocalDateTime scheduledTime) { this.scheduledTime = scheduledTime; }
     public Long getPublisherId() { return publisherId; }
     public void setPublisherId(Long publisherId) { this.publisherId = publisherId; }
+    public String getPublisherName() { return publisherName; }
+    public void setPublisherName(String publisherName) { this.publisherName = publisherName; }
     public Integer getIsTop() { return isTop; }
     public void setIsTop(Integer isTop) { this.isTop = isTop; }
     public Integer getStatus() { return status; }

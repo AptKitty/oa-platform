@@ -2,6 +2,7 @@ package com.oa.ui.panel;
 
 import com.oa.notice.entity.Notice;
 import com.oa.notice.service.NoticeService;
+import com.oa.system.service.RoleService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -24,13 +25,21 @@ public class NoticePanel extends BasePanel {
     private JTable noticeTable;
     private DefaultTableModel tableModel;
     private JTextField searchField;
+    private JButton newBtn;
+    private JButton deleteBtn;
+    private boolean canManage; // ???????(???/??)
 
     public NoticePanel() {
         noticeService = new NoticeService();
         initUI();
         loadNotices(null);
         // 启动时激活已到期的定时公告
-        noticeService.activateScheduledNotices();
+        noticeService.activateScheduledNotices();    }
+
+    @Override
+    public void setCurrentUser(Long userId, String username) {
+        super.setCurrentUser(userId, username);
+        checkManagePermission();
     }
 
     private void initUI() {
@@ -40,12 +49,18 @@ public class NoticePanel extends BasePanel {
         // 顶部工具栏
         JPanel toolbar = new JPanel(new BorderLayout(10, 0));
         JPanel leftBtns = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        JButton newBtn = new JButton("新建公告");
+        newBtn = new JButton("新建公告");
         newBtn.addActionListener(e -> showPublishDialog());
         JButton refreshBtn = new JButton("刷新");
         refreshBtn.addActionListener(e -> loadNotices(searchField.getText().trim()));
         leftBtns.add(newBtn);
         leftBtns.add(refreshBtn);
+        deleteBtn = new JButton("删除公告");
+        deleteBtn.addActionListener(e -> deleteSelectedNotice());
+        leftBtns.add(deleteBtn);
+        // ???????????????
+        newBtn.setVisible(false);
+        deleteBtn.setVisible(false);
 
         JPanel rightSearch = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
         searchField = new JTextField(15);
@@ -72,16 +87,38 @@ public class NoticePanel extends BasePanel {
         noticeTable.getColumnModel().getColumn(5).setMaxWidth(50);
         noticeTable.getColumnModel().getColumn(6).setMaxWidth(50);
 
-        noticeTable.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                int row = noticeTable.getSelectedRow();
-                if (row >= 0) {
-                    Long noticeId = (Long) tableModel.getValueAt(row, 0);
-                    showDetailDialog(noticeId);
+        // ???????????????
+        noticeTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int row = noticeTable.getSelectedRow();
+                    if (row >= 0) {
+                        Long noticeId = (Long) tableModel.getValueAt(row, 0);
+                        showDetailDialog(noticeId);
+                    }
                 }
             }
         });
         add(new JScrollPane(noticeTable), BorderLayout.CENTER);
+
+        // ?????????/??????????
+        checkManagePermission();
+    }
+
+    /** ??????????????????/??? */
+    private void checkManagePermission() {
+        try {
+            RoleService roleService = new RoleService();
+            java.util.Set<Long> roleIds = roleService.findRoleIdsByUserId(getCurrentUserId());
+            canManage = roleIds.contains(1L) || roleIds.contains(2L);
+            if (newBtn != null) newBtn.setVisible(canManage);
+            if (deleteBtn != null) deleteBtn.setVisible(canManage);
+        } catch (Exception e) {
+            canManage = false;
+            if (newBtn != null) newBtn.setVisible(false);
+            if (deleteBtn != null) deleteBtn.setVisible(false);
+        }
     }
 
     private void loadNotices(String keyword) {
@@ -95,7 +132,7 @@ public class NoticePanel extends BasePanel {
                 int unreadCount = Math.max(0, totalUsers - readCount);
                 tableModel.addRow(new Object[]{
                         n.getId(), n.getTitle(),
-                        "用户#" + n.getPublisherId(),
+                        n.getPublisherName() != null ? n.getPublisherName() : "用户#" + n.getPublisherId(),
                         n.getCreateTime() != null
                                 ? n.getCreateTime().toLocalDate().toString() : "",
                         readCount, unreadCount,
@@ -104,6 +141,36 @@ public class NoticePanel extends BasePanel {
             }
         } catch (Exception e) {
             showError("加载公告失败：" + e.getMessage());
+        }
+    }
+
+    /** 删除选中的公告（仅发布人本人或管理员可删） */
+    private void deleteSelectedNotice() {
+        int row = noticeTable.getSelectedRow();
+        if (row < 0) { showError("请先选择一条公告"); return; }
+        Long noticeId = (Long) tableModel.getValueAt(row, 0);
+        try {
+            Notice notice = noticeService.findById(noticeId);
+            if (notice == null) { showError("公告不存在"); return; }
+
+            // 权限检查：发布人本人 或 超级管理员(role=1) / 部门经理(role=2)
+            boolean canDelete = notice.getPublisherId().equals(getCurrentUserId());
+            if (!canDelete) {
+                RoleService roleService = new RoleService();
+                java.util.Set<Long> roleIds = roleService.findRoleIdsByUserId(getCurrentUserId());
+                canDelete = roleIds.contains(1L) || roleIds.contains(2L);
+            }
+            if (!canDelete) {
+                showError("只有发布人本人或管理员才能删除公告");
+                return;
+            }
+
+            if (!confirm("确定要删除公告【" + notice.getTitle() + "】吗？")) return;
+            noticeService.delete(noticeId);
+            showInfo("删除成功");
+            loadNotices(searchField.getText().trim());
+        } catch (Exception e) {
+            showError("删除失败：" + e.getMessage());
         }
     }
 
@@ -128,7 +195,7 @@ public class NoticePanel extends BasePanel {
             contentPane.setText(html);
 
             JPanel infoPanel = new JPanel(new GridLayout(5, 1, 5, 5));
-            infoPanel.add(new JLabel("发布人：用户#" + notice.getPublisherId()));
+            infoPanel.add(new JLabel("发布人：" + (notice.getPublisherName() != null ? notice.getPublisherName() : "用户#" + notice.getPublisherId())));
             infoPanel.add(new JLabel("发布时间：" +
                     (notice.getCreateTime() != null
                             ? notice.getCreateTime().toString().replace("T", " ") : "")));
@@ -161,6 +228,7 @@ public class NoticePanel extends BasePanel {
             infoPanel.add(readDetailBtn);
 
             detailPanel.add(infoPanel, BorderLayout.SOUTH);
+            detailPanel.setPreferredSize(new java.awt.Dimension(600, 500));
             JOptionPane.showMessageDialog(this, detailPanel,
                     "公告详情", JOptionPane.INFORMATION_MESSAGE);
             loadNotices(searchField.getText().trim());
@@ -171,6 +239,7 @@ public class NoticePanel extends BasePanel {
 
     /** 发布公告对话框（富文本 + 附件上传 + 定时发布 + 置顶） */
     private void showPublishDialog() {
+        if (!canManage) { showError("??????????????"); return; }
         JTextField titleField = new JTextField(30);
 
         // ===== 富文本编辑器 =====

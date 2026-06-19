@@ -194,7 +194,7 @@ public class MainFrame extends BaseFrame {
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setBackground(new Color(45, 52, 63));
-        sidebar.setPreferredSize(new Dimension(210, 0));
+        sidebar.setPreferredSize(new Dimension(210, 1));
 
         Color fg = new Color(200, 200, 200);
         Color bg = new Color(45, 52, 63);
@@ -260,16 +260,10 @@ public class MainFrame extends BaseFrame {
                 {"聊天窗口", "IM", "IM_CHAT"},
             });
 
-        // 用 BorderLayout.NORTH 保持自然高度 + JScrollPane 实现滚动
-        JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.setBackground(sidebar.getBackground());
-        wrapper.add(sidebar, BorderLayout.NORTH);
-        JScrollPane scrollPane = new JScrollPane(wrapper,
-                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane scrollPane = new JScrollPane(sidebar);
         scrollPane.setBorder(null);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.setPreferredSize(new Dimension(228, 0));
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         return scrollPane;
     }
 

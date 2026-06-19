@@ -215,7 +215,7 @@ public class MainFrame extends BaseFrame {
 
     // ==================== 折叠分组侧边栏 ====================
 
-    private JPanel createSidebar() {
+    private JScrollPane createSidebar() {
         JPanel sidebar = new JPanel();
         sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setBackground(new Color(45, 52, 63));

@@ -10,8 +10,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+
 
 public class MainFrame extends BaseFrame {
 
@@ -186,30 +185,6 @@ public class MainFrame extends BaseFrame {
         if (visible.isEmpty()) return;
         JMenu menu = new JMenu(title);
         for (JMenuItem mi : visible) menu.add(mi);
-
-        // 鼠标悬停自动展开下拉菜单
-        menu.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                menu.setPopupMenuVisible(true);
-            }
-        });
-        // 鼠标离开菜单区域时延迟关闭
-        menu.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseExited(MouseEvent e) {
-                // 使用 invokeLater 延迟关闭，给用户时间移到下拉项上
-                SwingUtilities.invokeLater(() -> {
-                    if (!menu.isPopupMenuVisible()) return;
-                    Point p = MouseInfo.getPointerInfo().getLocation();
-                    SwingUtilities.convertPointFromScreen(p, menu);
-                    if (!menu.getBounds().contains(p)) {
-                        menu.setPopupMenuVisible(false);
-                    }
-                });
-            }
-        });
-
         mb.add(menu);
     }
 
@@ -285,13 +260,16 @@ public class MainFrame extends BaseFrame {
                 {"聊天窗口", "IM", "IM_CHAT"},
             });
 
-        // 用 JScrollPane 包裹侧边栏，支持上下滚动
-        JScrollPane scrollPane = new JScrollPane(sidebar);
+        // 用 BorderLayout.NORTH 保持自然高度 + JScrollPane 实现滚动
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setBackground(sidebar.getBackground());
+        wrapper.add(sidebar, BorderLayout.NORTH);
+        JScrollPane scrollPane = new JScrollPane(wrapper,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(null);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        scrollPane.setPreferredSize(new Dimension(210, 0));
+        scrollPane.setPreferredSize(new Dimension(228, 0));
         return scrollPane;
     }
 

@@ -4,12 +4,12 @@
 <mapper namespace="com.oa.notice.dao.NoticeDao">
 
     <insert id="insert" parameterType="Notice" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO ntc_notice (title, content, publisher_id, is_top, status)
-        VALUES (#{title}, #{content}, #{publisherId}, #{isTop}, #{status})
+        INSERT INTO ntc_notice (title, content, content_html, publisher_id, is_top, scheduled_time, attachment, status)
+        VALUES (#{title}, #{content}, #{contentHtml}, #{publisherId}, #{isTop}, #{scheduledTime}, #{attachment}, #{status})
     </insert>
 
     <update id="update" parameterType="Notice">
-        UPDATE ntc_notice SET title=#{title}, content=#{content}, is_top=#{isTop}, status=#{status} WHERE id=#{id}
+        UPDATE ntc_notice SET title=#{title}, content=#{content}, content_html=#{contentHtml}, is_top=#{isTop}, scheduled_time=#{scheduledTime}, attachment=#{attachment}, status=#{status} WHERE id=#{id}
     </update>
 
     <delete id="deleteById">
@@ -17,7 +17,7 @@
     </delete>
 
     <select id="findById" resultType="Notice">
-        SELECT id, title, content, publisher_id, is_top, status, create_time, update_time
+        SELECT id, title, content, content_html, publisher_id, is_top, scheduled_time, attachment, status, create_time, update_time
         FROM ntc_notice WHERE id = #{id}
     </select>
 
@@ -52,4 +52,33 @@
         SELECT user_id FROM ntc_notice_read WHERE notice_id = #{noticeId}
     </select>
 
+    <select id="findScheduledToActivate" resultType="Notice">
+        SELECT id, title, content, content_html, publisher_id, is_top, scheduled_time, attachment, status, create_time, update_time
+        FROM ntc_notice WHERE status = 0 AND scheduled_time IS NOT NULL AND scheduled_time &lt;= NOW()
+    </select>
+    <select id="getReadUserNames" resultType="map">
+        SELECT u.id, u.real_name AS realName, u.username, d.dept_name AS deptName
+        FROM ntc_notice_read r
+        JOIN sys_user u ON r.user_id = u.id
+        LEFT JOIN sys_dept d ON u.dept_id = d.id
+        WHERE r.notice_id = #{noticeId}
+        ORDER BY r.read_time ASC
+    </select>
+
+    <select id="getUnreadUserNames" resultType="map">
+        SELECT u.id, u.real_name AS realName, u.username, d.dept_name AS deptName
+        FROM sys_user u
+        LEFT JOIN sys_dept d ON u.dept_id = d.id
+        WHERE u.status = 1
+          AND u.id NOT IN (
+              SELECT user_id FROM ntc_notice_read WHERE notice_id = #{noticeId}
+          )
+        ORDER BY d.dept_name, u.real_name
+    </select>
+
+    <select id="getActiveUserCount" resultType="int">
+        SELECT COUNT(*) FROM sys_user WHERE status = 1
+    </select>
 </mapper>
+
+

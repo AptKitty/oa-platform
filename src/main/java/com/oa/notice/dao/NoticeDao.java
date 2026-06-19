@@ -14,4 +14,11 @@ public interface NoticeDao {
     int insertReadRecord(@Param("noticeId") Long noticeId, @Param("userId") Long userId);
     int getReadCount(Long noticeId);
     List<Long> getReadUserIds(Long noticeId);
+    /** 查询到期需要激活的定时公告 */
+    List<Notice> findScheduledToActivate();
+    List<java.util.Map<String, Object>> getReadUserNames(Long noticeId);
+    List<java.util.Map<String, Object>> getUnreadUserNames(Long noticeId);
+    int getActiveUserCount();
 }
+
+

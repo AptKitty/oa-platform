@@ -14,4 +14,12 @@ public interface AttendanceDao {
     @org.apache.ibatis.annotations.MapKey("date")
     List<Map<String, Object>> getMonthlyStats(@Param("year") int year, @Param("month") int month);
     long countTodayClock(@Param("userId") Long userId, @Param("start") LocalDateTime start);
+
+    /**
+                  * 全员月度统计（第2周新增）
+             * ??realName, deptName, workDays, actualDays, lateCount, earlyCount, leaveDays
+     */
+    List<java.util.Map<String, Object>> getAllUsersMonthlyStats(
+        @Param("year") int year,
+        @Param("month") int month);
 }

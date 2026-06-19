@@ -1,6 +1,7 @@
-package com.oa.ui.frame;
+﻿package com.oa.ui.frame;
 
 import com.oa.ui.panel.*;
+import com.oa.common.Constants;
 import com.oa.system.service.MenuService;
 import com.oa.system.entity.Menu;
 import java.util.Set;
@@ -14,7 +15,6 @@ public class MainFrame extends BaseFrame {
 
     private JPanel workspacePanel;
     private CardLayout workspaceLayout;
-    // 面板工厂：key → 创建面板的 lambda，首次点击时才 new
     private Map<String, java.util.function.Supplier<JPanel>> panelFactories = new HashMap<>();
     private Set<String> allowedMenuCodes = new HashSet<>();
     private JPanel sidebarPanel;
@@ -34,9 +34,9 @@ public class MainFrame extends BaseFrame {
         workspaceLayout = new CardLayout();
         workspacePanel = new JPanel(workspaceLayout);
 
-        // 注册面板工厂：只在首次访问时创建面板（懒加载）
         registerLazy("APPLY",         () -> new ApplyPanel());
         registerLazy("APPROVAL",      () -> new ApprovalPanel());
+        registerLazy("MY_APPLICATIONS", () -> new MyApplicationPanel());
         registerLazy("FORM_TEMPLATE", () -> new FormTemplatePanel());
         registerLazy("PROCESS_DEF",   () -> new ProcessDefPanel());
         registerLazy("ATTENDANCE",    () -> new ClockPanel());
@@ -62,15 +62,29 @@ public class MainFrame extends BaseFrame {
 
         add(workspacePanel, BorderLayout.CENTER);
 
+        // 底部状态栏：用户信息 + 退出登录按钮
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         bar.setBorder(BorderFactory.createEtchedBorder());
         bar.add(new JLabel("当前用户: " + currentUsername));
+
+        JButton logoutBtn = new JButton("退出登录");
+        logoutBtn.addActionListener(e -> {
+            if (confirm("确定要退出登录吗？")) {
+                Constants.clearCurrentUser();
+                dispose();
+                SwingUtilities.invokeLater(() -> {
+                    LoginFrame loginFrame = new LoginFrame();
+                    loginFrame.setVisible(true);
+                });
+            }
+        });
+        bar.add(logoutBtn);
+
         add(bar, BorderLayout.SOUTH);
     }
 
     private void registerLazy(String key, java.util.function.Supplier<JPanel> factory) {
         panelFactories.put(key, factory);
-        // 先放一个占位 JPanel，等首次访问时替换
         workspacePanel.add(new JPanel(), key);
     }
 
@@ -99,11 +113,16 @@ public class MainFrame extends BaseFrame {
         addBtn(p, "系统管理", "SYSTEM", "SYSTEM", fg, bg, font);
         addBtn(p, "审批流程", "APPLY", "WF_START", fg, bg, font);
         addBtn(p, "我的审批", "APPROVAL", "WF_MY_APPROVAL", fg, bg, font);
+        addBtn(p, "我的申请", "MY_APPLICATIONS", "WF_MY_APPLICATIONS", fg, bg, font);
         addBtn(p, "考勤打卡", "ATTENDANCE", "ATT_CLOCK", fg, bg, font);
+        addBtn(p, "考勤统计", "ATTENDANCE_STAT", "ATT_STAT", fg, bg, font);
         addBtn(p, "公告消息", "NOTICE", "NOTICE_LIST", fg, bg, font);
+        addBtn(p, "消息中心", "MESSAGE", "MSG_CENTER", fg, bg, font);
         addBtn(p, "日程任务", "SCHEDULE", "SCH_CALENDAR", fg, bg, font);
         addBtn(p, "行政管理", "ADMIN", "ADM_ROOM", fg, bg, font);
         addBtn(p, "统计大屏", "STATISTICS", "STAT_OVERVIEW", fg, bg, font);
+        addBtn(p, "  审批效率", "APPROVAL_STAT", "STAT_APPROVAL", fg, bg, font.deriveFont(12f));
+        addBtn(p, "  考勤图表", "ATT_CHART", "STAT_ATTENDANCE", fg, bg, font.deriveFont(12f));
         addBtn(p, "即时通讯", "IM", "IM_CHAT", fg, bg, font);
         addBtn(p, "工作台",    "WELCOME", "WELCOME",  fg, bg, font);
         addBtn(p, "资产管理", "ASSET", "ADM_ASSET",    fg, bg, font);
@@ -134,23 +153,28 @@ public class MainFrame extends BaseFrame {
         parent.add(b);
     }
 
+                    /** 设置当前用户允许的菜单编码 */
+    public void setAllowedMenuCodes(Set<String> codes) {
+        this.allowedMenuCodes = codes;
+    }
+
     public void registerPanel(String key, JPanel panel) {
         workspacePanel.add(panel, key);
     }
 
-    /** 切换面板（首次访问时懒加载） */
     public void showPanel(String key) {
         java.util.function.Supplier<JPanel> factory = panelFactories.get(key);
         if (factory != null) {
-            // 懒加载：首次访问时创建真正的面板
             JPanel realPanel = factory.get();
             if (realPanel instanceof BasePanel) {
                 ((BasePanel) realPanel).setCurrentUser(currentUserId, currentUsername);
             }
             workspacePanel.add(realPanel, key);
-            panelFactories.remove(key);  // 只创建一次
+            panelFactories.remove(key);
         }
         workspaceLayout.show(workspacePanel, key);
         workspacePanel.revalidate();
     }
 }
+
+

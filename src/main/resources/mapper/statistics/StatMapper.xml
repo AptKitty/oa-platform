@@ -18,13 +18,14 @@
     </select>
 
     <select id="getApprovalEfficiencyRanking" resultMap="statResult">
-        SELECT u.real_name AS name, ROUND(AVG(TIMESTAMPDIFF(MINUTE, r.create_time, r.approve_time)), 1) AS value
+        SELECT u.real_name AS name, COUNT(*) AS value
         FROM wf_approval_record r
         LEFT JOIN sys_user u ON u.id = r.approver_id
         WHERE DATE_FORMAT(r.create_time, '%Y-%m') = #{month}
-          AND r.action = 'APPROVE' AND r.approve_time IS NOT NULL
+          AND r.action = 'APPROVE'
         GROUP BY r.approver_id
         ORDER BY value DESC
+        LIMIT 10
     </select>
 
     <select id="getDeptAttendanceComparison" resultMap="statResult">
@@ -60,6 +61,14 @@
         WHERE d.status = 1
         GROUP BY d.id
         ORDER BY value DESC
+    </select>
+
+
+    <select id="getPendingTaskStats" resultType="map">
+        SELECT
+            (SELECT COUNT(*) FROM wf_task WHERE status = 'PENDING') AS totalPending,
+            (SELECT COUNT(*) FROM wf_process_instance WHERE DATE(create_time) = CURDATE()) AS todayCreated,
+            (SELECT COUNT(*) FROM wf_approval_record WHERE DATE(create_time) = CURDATE() AND action = 'APPROVE') AS todayApproved
     </select>
 
 </mapper>

@@ -47,4 +47,40 @@
           AND clock_time >= #{start}
     </select>
 
+
+    <!-- ==================== ??????????2???? ==================== -->
+    <!--
+        ??????????????????
+        ?? sys_user(??), sys_dept(??), att_clock_record(??), att_leave_request(??)
+        ???????????????????????????????
+    -->
+    <select id="getAllUsersMonthlyStats" resultType="map">
+        SELECT
+            u.real_name    AS realName,
+            COALESCE(d.dept_name, '-') AS deptName,
+            22             AS workDays,
+            COUNT(DISTINCT DATE(cr.clock_time)) AS actualDays,
+            SUM(CASE WHEN cr.clock_type = 'IN'
+                     AND TIME(cr.clock_time) > '09:00:00' THEN 1 ELSE 0 END) AS lateCount,
+            SUM(CASE WHEN cr.clock_type = 'OUT'
+                     AND TIME(cr.clock_time) &lt; '18:00:00' THEN 1 ELSE 0 END) AS earlyCount,
+            COALESCE(lr.leave_days, 0.0) AS leaveDays
+        FROM sys_user u
+        LEFT JOIN sys_dept d ON u.dept_id = d.id
+        LEFT JOIN att_clock_record cr ON cr.user_id = u.id
+            AND YEAR(cr.clock_time) = #{year}
+            AND MONTH(cr.clock_time) = #{month}
+        LEFT JOIN (
+            SELECT user_id, SUM(duration) AS leave_days
+            FROM att_leave_request
+            WHERE status = 'APPROVED'
+              AND YEAR(start_time) = #{year}
+              AND MONTH(start_time) = #{month}
+            GROUP BY user_id
+        ) lr ON lr.user_id = u.id
+        WHERE u.status = 1
+        GROUP BY u.id, u.real_name, d.dept_name
+        ORDER BY d.dept_name, u.real_name
+    </select>
+
 </mapper>

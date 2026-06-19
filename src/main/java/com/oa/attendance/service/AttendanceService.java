@@ -112,9 +112,11 @@ public class AttendanceService {
      */
     public Map<String, Object> getTodayRecord(Long userId) {
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
-        AttendanceDao dao = MyBatisUtil.openSession().getMapper(AttendanceDao.class);
-        List<ClockRecord> records =
-                dao.findByUserIdAndDate(userId, todayStart, todayStart.plusDays(1));
+        List<ClockRecord> records;
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            AttendanceDao dao = s.getMapper(AttendanceDao.class);
+            records = dao.findByUserIdAndDate(userId, todayStart, todayStart.plusDays(1));
+        }
 
         if (records.isEmpty()) return null;
 
@@ -141,8 +143,11 @@ public class AttendanceService {
         LocalDateTime start = today.minusDays(days - 1).atStartOfDay();
         LocalDateTime end   = today.plusDays(1).atStartOfDay();
 
-        AttendanceDao dao = MyBatisUtil.openSession().getMapper(AttendanceDao.class);
-        List<ClockRecord> records = dao.findByUserIdAndDate(userId, start, end);
+        List<ClockRecord> records;
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            AttendanceDao dao = s.getMapper(AttendanceDao.class);
+            records = dao.findByUserIdAndDate(userId, start, end);
+        }
 
         // 初始化 N 天的空行（保证无打卡的日期也显示）
         Map<LocalDate, Map<String, Object>> grouped = new LinkedHashMap<>();
@@ -184,8 +189,9 @@ public class AttendanceService {
      * 月度统计（DAO 透传）
      */
     public List<Map<String, Object>> getMonthlyStats(int year, int month) {
-        AttendanceDao dao = MyBatisUtil.openSession().getMapper(AttendanceDao.class);
-        return dao.getMonthlyStats(year, month);
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            return s.getMapper(AttendanceDao.class).getMonthlyStats(year, month);
+        }
     }
 
     // ==================== 请假相关 ==================== //
@@ -228,7 +234,9 @@ public class AttendanceService {
      * @return 每行: {leave_type, total_days, used_days, remaining_days}
      */
     public List<Map<String, Object>> getLeaveQuota(Long userId, int year) {
-        return MyBatisUtil.openSession().getMapper(LeaveDao.class).getQuota(userId, year);
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            return s.getMapper(LeaveDao.class).getQuota(userId, year);
+        }
     }
 
     /**
@@ -255,15 +263,18 @@ public class AttendanceService {
      */
     public List<LeaveRequest> getLeaveHistory(Long userId, int page, int pageSize) {
         int offset = (page - 1) * pageSize;
-        return MyBatisUtil.openSession().getMapper(LeaveDao.class)
-                .findByUserId(userId, offset, pageSize);
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            return s.getMapper(LeaveDao.class).findByUserId(userId, offset, pageSize);
+        }
     }
 
     /**
      * 统计用户请假总数
      */
     public long countLeaveHistory(Long userId) {
-        return MyBatisUtil.openSession().getMapper(LeaveDao.class).countByUserId(userId);
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            return s.getMapper(LeaveDao.class).countByUserId(userId);
+        }
     }
 
     // ==================== 全员月度统计（第2周新增） ==================== //
@@ -273,35 +284,41 @@ public class AttendanceService {
      * 联调时需升级 Mapper: JOIN sys_user + sys_dept 获取姓名和部门
      */
     public List<Map<String, Object>> getMonthlyStatsAllUsers(int year, int month) {
-        AttendanceDao attDao = MyBatisUtil.openSession().getMapper(AttendanceDao.class);
-        List<Map<String, Object>> rawStats = attDao.getMonthlyStats(year, month);
+        List<Map<String, Object>> rawStats;
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            rawStats = s.getMapper(AttendanceDao.class).getAllUsersMonthlyStats(year, month);
+        }
         int workDays = 22;
         List<Map<String, Object>> result = new ArrayList<>();
 
-        if (rawStats.isEmpty()) {
-            Map<String, Object> empty = new HashMap<>();
-            empty.put("realName", "暂无数据");
-            empty.put("deptName", "-");
-            empty.put("workDays", workDays);
-            empty.put("actualDays", 0);
-            empty.put("lateCount", 0);
-            empty.put("earlyCount", 0);
-            empty.put("absentDays", workDays);
-            empty.put("leaveDays", 0.0);
-            result.add(empty);
+        if (rawStats == null || rawStats.isEmpty()) {
             return result;
         }
 
-        Map<String, Object> demo = new HashMap<>();
-        demo.put("realName", "当前用户");
-        demo.put("deptName", "开发部");
-        demo.put("workDays", workDays);
-        demo.put("actualDays", rawStats.size());
-        demo.put("lateCount", 0);
-        demo.put("earlyCount", 0);
-        demo.put("absentDays", workDays - rawStats.size());
-        demo.put("leaveDays", 0.0);
-        result.add(demo);
+        for (Map<String, Object> row : rawStats) {
+            Map<String, Object> statRow = new HashMap<>();
+            String realName = (String) row.getOrDefault("realName", "??");
+            String deptName = (String) row.getOrDefault("deptName", "-");
+            int actualDays = row.get("actualDays") != null
+                    ? ((Number) row.get("actualDays")).intValue() : 0;
+            int lateCount = row.get("lateCount") != null
+                    ? ((Number) row.get("lateCount")).intValue() : 0;
+            int earlyCount = row.get("earlyCount") != null
+                    ? ((Number) row.get("earlyCount")).intValue() : 0;
+            double leaveDays = row.get("leaveDays") != null
+                    ? ((Number) row.get("leaveDays")).doubleValue() : 0.0;
+            int absentDays = Math.max(0, workDays - actualDays);
+
+            statRow.put("realName", realName);
+            statRow.put("deptName", deptName);
+            statRow.put("workDays", workDays);
+            statRow.put("actualDays", actualDays);
+            statRow.put("lateCount", lateCount);
+            statRow.put("earlyCount", earlyCount);
+            statRow.put("absentDays", absentDays);
+            statRow.put("leaveDays", leaveDays);
+            result.add(statRow);
+        }
         return result;
     }
 }

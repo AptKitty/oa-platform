@@ -1,4 +1,4 @@
-package com.oa.ui.panel;
+﻿package com.oa.ui.panel;
 
 import com.oa.statistics.service.StatService;
 import com.oa.statistics.entity.StatResultVO;
@@ -37,30 +37,34 @@ public class AttendanceStatChartPanel extends BasePanel {
         JPanel chartPanel = new JPanel(new GridLayout(1, 2, 10, 10));
 
         try {
-            // 柱状图：部门出勤对比
+            // 柱状图：各部门考勤打卡次数对比
             DefaultCategoryDataset barData = new DefaultCategoryDataset();
-            List<StatResultVO> list = statService.getAttendanceComparison(2026, 6);
+            List<StatResultVO> list = statService.getAttendanceComparison(
+                java.time.LocalDate.now().getYear(), java.time.LocalDate.now().getMonthValue());
             for (StatResultVO vo : list) {
                 if (vo.getValue() instanceof Number) {
                     barData.addValue(((Number) vo.getValue()).doubleValue(), "打卡次数", vo.getName());
                 }
             }
-            JFreeChart barChart = ChartFactory.createBarChart("部门出勤对比", "部门", "打卡次数", barData);
+            JFreeChart barChart = ChartFactory.createBarChart("各部门考勤对比", "部门", "打卡次数", barData);
+            ApprovalStatPanel.configureChartFont(barChart);
             chartPanel.add(new ChartPanel(barChart));
         } catch (Exception e) {
-            chartPanel.add(new JLabel("出勤数据暂无"));
+            chartPanel.add(new JLabel("考勤数据暂无"));
         }
 
         try {
             // 饼图：请假类型分布
             DefaultPieDataset pieData = new DefaultPieDataset();
-            List<StatResultVO> list2 = statService.getLeaveDistribution(2026, 6);
+            List<StatResultVO> list2 = statService.getLeaveDistribution(
+                java.time.LocalDate.now().getYear(), java.time.LocalDate.now().getMonthValue());
             for (StatResultVO vo : list2) {
                 if (vo.getValue() instanceof Number) {
                     pieData.setValue(vo.getName(), ((Number) vo.getValue()).doubleValue());
                 }
             }
             JFreeChart pieChart = ChartFactory.createPieChart("请假类型分布", pieData, true, true, false);
+            ApprovalStatPanel.configureChartFont(pieChart);
             chartPanel.add(new ChartPanel(pieChart));
         } catch (Exception e) {
             chartPanel.add(new JLabel("请假数据暂无"));

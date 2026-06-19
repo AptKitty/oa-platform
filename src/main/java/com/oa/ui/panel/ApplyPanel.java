@@ -2,6 +2,7 @@ package com.oa.ui.panel;
 
 import javax.swing.*;
 import com.oa.common.MyBatisUtil;
+import org.apache.ibatis.session.SqlSession;
 import com.oa.workflow.dao.FormTemplateDao;
 import com.oa.workflow.dao.ProcessDefinitionDao;
 import com.oa.workflow.entity.FormTemplate;
@@ -79,7 +80,12 @@ public class ApplyPanel extends BasePanel {
         gbc.gridx = 0; gbc.gridy = 3;
         gbc.gridwidth = 2;
         JButton submitButton = new JButton("提交申请");
+        JButton draftButton = new JButton("保存草稿");
         add(submitButton, gbc);
+
+                                                                                                // ===== 选择模板 =====
+        gbc.gridx = 0; gbc.gridy = 4;
+        add(draftButton, gbc);
 
         // ===== 提交按钮点击事件 =====
         // 完整流程(5步)：
@@ -88,6 +94,57 @@ public class ApplyPanel extends BasePanel {
         // ③ 遍历动态表单组件，收集用户填写的所有值
         // ④ 拼接成JSON字符串（如 {"leaveType":"事假","days":"3"}）
         // ⑤ 调用 WorkflowService.submitProcess() 发起审批
+                                                                                                                                                                                                // ===== éæ©æµç¨å®ä¹ =====
+        draftButton.addActionListener(e -> {
+            String selected = (String) typeComboBox.getSelectedItem();
+            if ("请选择模板...".equals(selected)) {
+                showError("请先选择审批模板");
+                return;
+            }
+            try {
+                                                                                                                                                                                                // æ¥æ¾æ¨¡æ¿ID
+                java.util.Map<String, String> formValues = new java.util.LinkedHashMap<>();
+                for (java.util.Map.Entry<String, JComponent> entry : fieldComponents.entrySet()) {
+                    formValues.put(entry.getKey(), getComponentValue(entry.getValue()));
+                }
+                // ? JSON
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                String formDataJson = mapper.writeValueAsString(formValues);
+
+                                                                                                                                                                // æå»ºè¡¨åJSON
+                String selectedDef = (String) defBox.getSelectedItem();
+                if ("请选择流程...".equals(selectedDef)) {
+                showError("请先选择审批模板");
+                    return;
+                }
+                String defName = selectedDef.replace(" [" + typeComboBox.getSelectedItem() + "]", "");
+                com.oa.workflow.dao.ProcessDefinitionDao defDao = 
+                    com.oa.common.MyBatisUtil.openSession().getMapper(com.oa.workflow.dao.ProcessDefinitionDao.class);
+                java.util.List<com.oa.workflow.entity.ProcessDefinition> defs = defDao.findAll();
+                Long defId = null;
+                for (com.oa.workflow.entity.ProcessDefinition d : defs) {
+                    if (d.getDefName().equals(defName)) { defId = d.getId(); break; }
+                }
+                if (defId == null) { showError("请先选择流程"); return; }
+
+                                                                                                                                                                                                // æå»ºJSONå¹¶ä¿å­ä¸ºDRAFT
+                com.oa.workflow.entity.ProcessInstance instance = new com.oa.workflow.entity.ProcessInstance();
+                instance.setDefId(defId);
+                instance.setDefName(defName);
+                instance.setTemplateId(currentTemplateId);
+                instance.setApplicantId(getCurrentUserId());
+                instance.setFormData(formDataJson);
+                instance.setStatus(com.oa.common.Constants.APPROVAL_STATUS_DRAFT);
+
+                com.oa.workflow.dao.ProcessInstanceDao instanceDao = 
+                    com.oa.common.MyBatisUtil.openSession().getMapper(com.oa.workflow.dao.ProcessInstanceDao.class);
+                instanceDao.insert(instance);
+                showInfo("申请已提交，请等待审批");
+            } catch (Exception ex) {
+                showError("提交失败: " + ex.getMessage());
+            }
+        });
+
         submitButton.addActionListener(e -> {
             // ① 校验：必须选了模板才能提交
             String selected = (String) typeComboBox.getSelectedItem();

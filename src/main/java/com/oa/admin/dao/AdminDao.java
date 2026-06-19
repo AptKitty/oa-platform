@@ -15,14 +15,20 @@ public interface AdminDao {
     List<MeetingRoom> findAvailableRooms(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     int insertBooking(com.oa.admin.entity.RoomBooking booking);
     boolean isTimeSlotAvailable(@Param("roomId") Long roomId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    List<RoomBooking> findBookingsByUser(Long userId);
+    int cancelBooking(Long id);
     // 资产
     List<Asset> findAllAssets(@Param("keyword") String keyword);
     int insertAsset(Asset asset);
     int updateAsset(Asset asset);
+    int updateAssetStatus(@Param("id") Long id, @Param("status") String status);
     int insertAssetRecord(com.oa.admin.entity.AssetRecord record);
+    List<AssetRecord> findAssetRecordsByAssetId(Long assetId);
     // 车辆
     List<Vehicle> findAllVehicles();
     int insertVehicle(Vehicle vehicle);
     int updateVehicle(Vehicle vehicle);
+    int updateVehicleStatus(@Param("id") Long id, @Param("status") String status);
     int insertVehicleRecord(com.oa.admin.entity.VehicleRecord record);
+    List<VehicleRecord> findVehicleRecords(Long vehicleId);
 }

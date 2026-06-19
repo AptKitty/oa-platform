@@ -11,5 +11,6 @@ public interface StatDao {
     List<StatResultVO> getDeptAttendanceComparison(@Param("year") int year, @Param("month") int month);
     List<StatResultVO> getLeaveTypeDistribution(@Param("year") int year, @Param("month") int month);
     List<StatResultVO> getMonthlyApprovalTrend(@Param("year") int year);
-    List<StatResultVO> getDeptUserCount();
+    List<StatResultVO> getDeptUserCount();
+    java.util.Map<String, Object> getPendingTaskStats();
 }

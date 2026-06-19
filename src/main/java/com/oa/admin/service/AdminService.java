@@ -36,4 +36,13 @@ public class AdminService {
     public void addVehicle(Vehicle vehicle) { getDao().insertVehicle(vehicle); }
     public void updateVehicle(Vehicle vehicle) { getDao().updateVehicle(vehicle); }
     public void addVehicleRecord(VehicleRecord record) { getDao().insertVehicleRecord(record); }
+
+                    // ===== 面板需要但 Service 未暴露的方法 =====
+    public void updateVehicleStatus(Long id, String status) { getDao().updateVehicleStatus(id, status); }
+    public List<VehicleRecord> getVehicleRecords(Long vehicleId) { return getDao().findVehicleRecords(vehicleId); }
+    public void scrapAsset(Long id) { getDao().updateAssetStatus(id, "SCRAPPED"); }
+    public List<AssetRecord> getAssetRecords(Long assetId) { return getDao().findAssetRecordsByAssetId(assetId); }
+    public List<RoomBooking> getMyBookings(Long userId) { return getDao().findBookingsByUser(userId); }
+    public void cancelBooking(Long id) { getDao().cancelBooking(id); }
+
 }

@@ -6,6 +6,8 @@ import com.oa.system.entity.Dept;
 import com.oa.system.entity.User;
 import com.oa.system.service.DeptService;
 import com.oa.system.service.UserService;
+import com.oa.system.service.RoleService;
+import com.oa.system.entity.Role;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -19,6 +21,7 @@ public class UserManagePanel extends BasePanel {
 
     private final UserService userService = new UserService();
     private final DeptService deptService = new DeptService();
+    private final RoleService roleService = new RoleService();
 
     private JTextField keywordField;
     private JComboBox<String> deptCombo;
@@ -136,7 +139,7 @@ public class UserManagePanel extends BasePanel {
         for (User u : page.getRows()) {
             tableModel.addRow(new Object[]{
                     u.getId(), u.getUsername(), u.getRealName(), u.getPhone(), u.getEmail(),
-                    getDeptName(u.getDeptId()), u.getPosition(),
+                    getDeptName(u.getDeptId()), u.getPosition(), u.getHireDate(),
                     u.getStatus() == 1 ? "正常" : "禁用",
                     u.getCreateTime()
             });
@@ -164,7 +167,7 @@ public class UserManagePanel extends BasePanel {
         boolean isEdit = (user != null);
         JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this),
                 isEdit ? "编辑用户" : "新增用户", true);
-        dialog.setSize(420, 400);
+        dialog.setSize(450, 560);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 

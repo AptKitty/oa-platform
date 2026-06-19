@@ -13,6 +13,7 @@ public class User extends BaseEntity {
     private String phone;
     private String email;
     private Long deptId;
+    private Long leaderId;
     private String position;
     private String avatar;
     private java.time.LocalDate hireDate;
@@ -31,6 +32,8 @@ public class User extends BaseEntity {
     public void setEmail(String email) { this.email = email; }
     public Long getDeptId() { return deptId; }
     public void setDeptId(Long deptId) { this.deptId = deptId; }
+    public Long getLeaderId() { return leaderId; }
+    public void setLeaderId(Long leaderId) { this.leaderId = leaderId; }
     public String getPosition() { return position; }
     public void setPosition(String position) { this.position = position; }
     public String getAvatar() { return avatar; }

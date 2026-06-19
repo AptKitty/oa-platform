@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import com.oa.common.MyBatisUtil;
+import org.apache.ibatis.session.SqlSession;
 import com.oa.workflow.service.WorkflowService;
 import com.oa.workflow.entity.ProcessInstance;
 import com.oa.workflow.entity.ProcessNode;
@@ -129,8 +130,28 @@ public class ApprovalPanel extends BasePanel {
         formPanel.add(new JLabel("审批意见:"), gbc);
         gbc.gridx = 1;
         JTextArea commentArea = new JTextArea(2, 30);
+        JTextField attachPathField2 = new JTextField(30);
+        attachPathField2.setEditable(false);
+        JButton attachBtn2 = new JButton("审批通过");
+        final String[] attachPath2 = {""};
+        attachBtn2.addActionListener(ev -> {
+            JFileChooser fc = new JFileChooser();
+            if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                attachPath2[0] = fc.getSelectedFile().getAbsolutePath();
+                attachPathField2.setText(fc.getSelectedFile().getName());
+            }
+        });
         commentArea.setLineWrap(true);
         formPanel.add(new JScrollPane(commentArea), gbc);
+
+                                            // 审批通过
+        gbc.gridx = 0; gbc.gridy = 7;
+        formPanel.add(new JLabel("??:"), gbc);
+        gbc.gridx = 1;
+        JPanel attachRow = new JPanel(new BorderLayout(5, 0));
+        attachRow.add(attachPathField2, BorderLayout.CENTER);
+        attachRow.add(attachBtn2, BorderLayout.EAST);
+        formPanel.add(attachRow, gbc);
 
         // (4) 通过/驳回按钮
         gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
@@ -145,7 +166,7 @@ public class ApprovalPanel extends BasePanel {
         // 流程：(a)调用 Service.approve()  →  (b)提示成功  →  (c)刷新列表  →  (d)重置操作区
         approveBtn.addActionListener(e -> { 
             try {
-                workflowService.approve(instanceId, getCurrentUserId(), commentArea.getText());  // (a)
+                workflowService.approve(instanceId, getCurrentUserId(), commentArea.getText(), attachPath2[0]);  // (a)
                 showInfo("审批通过");                                                         // (b)
                 loadPending();                                                                // (c) 刷新列表
                 resetDetailPanel();                                                           // (d) 重置操作区
@@ -158,7 +179,7 @@ public class ApprovalPanel extends BasePanel {
         // 流程：同通过，但调用 Service.reject()，状态变为 REJECTED
         rejectBtn.addActionListener(e -> {
             try { 
-                workflowService.reject(instanceId, getCurrentUserId(), commentArea.getText());
+                workflowService.reject(instanceId, getCurrentUserId(), commentArea.getText(), attachPath2[0]);
                 showInfo("已驳回");
                 loadPending();
                 resetDetailPanel();

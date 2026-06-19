@@ -4,6 +4,7 @@ import com.oa.system.dao.RoleDao;
 import com.oa.system.dao.MenuDao;
 import com.oa.system.entity.*;
 import com.oa.common.MyBatisUtil;
+import org.apache.ibatis.session.SqlSession;
 import java.util.List;
 
 /**
@@ -12,12 +13,21 @@ import java.util.List;
  */
 public class RoleService {
 
-  public List<Role> getAllRoles() { return MyBatisUtil.openSession().getMapper(RoleDao.class).findAll(); }
-  public List<Role> getUserRoles(Long userId) { return MyBatisUtil.openSession().getMapper(RoleDao.class).findByUserId(userId); }
-  public List<Menu> getUserMenus(Long userId) { return MyBatisUtil.openSession().getMapper(MenuDao.class).findByUserId(userId); }
+  public List<Role> getAllRoles() {
+    try (SqlSession s = MyBatisUtil.openSession()) { return s.getMapper(RoleDao.class).findAll(); }
+  }
+  public List<Role> getUserRoles(Long userId) {
+    try (SqlSession s = MyBatisUtil.openSession()) { return s.getMapper(RoleDao.class).findByUserId(userId); }
+  }
+  public List<Menu> getUserMenus(Long userId) {
+    try (SqlSession s = MyBatisUtil.openSession()) { return s.getMapper(MenuDao.class).findByUserId(userId); }
+  }
   public void assignRoles(Long userId, List<Long> roleIds) {
-    RoleDao dao = MyBatisUtil.openSession().getMapper(RoleDao.class);
-    dao.deleteUserRoles(userId);
-    for (Long rid : roleIds) dao.insertUserRole(userId, rid);
+    try (SqlSession s = MyBatisUtil.openSession(false)) {
+      RoleDao dao = s.getMapper(RoleDao.class);
+      dao.deleteUserRoles(userId);
+      for (Long rid : roleIds) dao.insertUserRole(userId, rid);
+      s.commit();
+    }
   }
 }

@@ -70,7 +70,8 @@ CREATE TABLE sys_menu (
     icon        VARCHAR(50) DEFAULT NULL COMMENT '图标',
     sort_order  INT         DEFAULT 0   COMMENT '排序',
     status      TINYINT     DEFAULT 1   COMMENT '状态',
-    create_time DATETIME    DEFAULT CURRENT_TIMESTAMP
+    create_time DATETIME    DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) COMMENT '菜单权限表';
 
 -- 角色-菜单关联表
@@ -219,6 +220,8 @@ CREATE TABLE ntc_notice (
     content      TEXT         NOT NULL  COMMENT '内容(富文本HTML)',
     publisher_id BIGINT       NOT NULL  COMMENT '发布人ID',
     is_top       TINYINT      DEFAULT 0 COMMENT '是否置顶',
+      scheduled_time DATETIME    DEFAULT NULL COMMENT '定时发布时间',
+      attachment     VARCHAR(500) DEFAULT NULL COMMENT '附件路径(多个用逗号分隔)',
     status       TINYINT      DEFAULT 1 COMMENT '状态 1发布 0草稿',
     create_time  DATETIME     DEFAULT CURRENT_TIMESTAMP,
     update_time  DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -413,4 +416,5 @@ CREATE TABLE im_message (
     send_time       DATETIME    DEFAULT CURRENT_TIMESTAMP,
     status          VARCHAR(20) DEFAULT 'SENT' COMMENT 'SENT/DELIVERED/READ'
 ) COMMENT '聊天消息(IM预留)';
+
 

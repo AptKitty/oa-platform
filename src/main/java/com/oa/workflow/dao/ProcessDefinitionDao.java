@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface ProcessDefinitionDao {
     ProcessDefinition findById(Long id);
+    ProcessDefinition findByTemplateId(Long templateId);
     List<ProcessDefinition> findAll();
     List<ProcessNode> findNodesByDefId(Long defId);
     int insert(ProcessDefinition def);

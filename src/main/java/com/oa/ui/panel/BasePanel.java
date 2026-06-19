@@ -90,4 +90,23 @@ public abstract class BasePanel extends JPanel {
         }
         return null;
     }
+
+    /** ?? JFreeChart ??????????????????? */
+    protected static void setChartChineseFont(org.jfree.chart.JFreeChart chart) {
+        java.awt.Font font = new java.awt.Font("Microsoft YaHei", java.awt.Font.PLAIN, 12);
+        java.awt.Font titleFont = new java.awt.Font("Microsoft YaHei", java.awt.Font.BOLD, 14);
+        chart.getTitle().setFont(titleFont);
+        if (chart.getLegend() != null) chart.getLegend().setItemFont(font);
+        if (chart.getPlot() instanceof org.jfree.chart.plot.CategoryPlot) {
+            org.jfree.chart.plot.CategoryPlot p = (org.jfree.chart.plot.CategoryPlot) chart.getPlot();
+            p.getDomainAxis().setTickLabelFont(font);
+            p.getDomainAxis().setLabelFont(font);
+            p.getRangeAxis().setTickLabelFont(font);
+            p.getRangeAxis().setLabelFont(font);
+        } else if (chart.getPlot() instanceof org.jfree.chart.plot.PiePlot) {
+            org.jfree.chart.plot.PiePlot p = (org.jfree.chart.plot.PiePlot) chart.getPlot();
+            p.setLabelFont(font);
+        }
+    }
+
 }

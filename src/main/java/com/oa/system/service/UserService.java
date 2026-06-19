@@ -4,6 +4,7 @@ import com.oa.system.dao.UserDao;
 import com.oa.system.entity.User;
 import com.oa.common.MyBatisUtil;
 import com.oa.common.PageResult;
+import org.apache.ibatis.session.SqlSession;
 import java.util.List;
 
 /**
@@ -12,33 +13,43 @@ import java.util.List;
  */
 public class UserService {
 
-    private UserDao getDao() {
-        return MyBatisUtil.openSession().getMapper(UserDao.class);
-    }
-
     public User login(String username, String password) {
-        User user = getDao().findByUsername(username);
-        if (user == null || !user.getPassword().equals(com.oa.common.MD5Util.md5(password))) {
-            throw new com.oa.common.BusinessException("用户名或密码错误");
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            User user = s.getMapper(UserDao.class).findByUsername(username);
+            if (user == null || !user.getPassword().equals(com.oa.common.MD5Util.md5(password))) {
+                throw new com.oa.common.BusinessException("用户名或密码错误");
+            }
+            if (user.getStatus() == 0) {
+                throw new com.oa.common.BusinessException("账号已被禁用");
+            }
+            return user;
         }
-        if (user.getStatus() == 0) {
-            throw new com.oa.common.BusinessException("账号已被禁用");
-        }
-        return user;
     }
 
-    public User findById(Long id) { return getDao().findById(id); }
+    public User findById(Long id) {
+        try (SqlSession s = MyBatisUtil.openSession()) { return s.getMapper(UserDao.class).findById(id); }
+    }
 
     public PageResult<User> findByPage(String keyword, Long deptId, Integer status, int page, int pageSize) {
-        UserDao dao = getDao();
-        int offset = (page - 1) * pageSize;
-        List<User> rows = dao.findByCondition(keyword, deptId, status, offset, pageSize);
-        long total = dao.countByCondition(keyword, deptId, status);
-        return new PageResult<>(total, page, pageSize, rows);
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            UserDao dao = s.getMapper(UserDao.class);
+            int offset = (page - 1) * pageSize;
+            List<User> rows = dao.findByCondition(keyword, deptId, status, offset, pageSize);
+            long total = dao.countByCondition(keyword, deptId, status);
+            return new PageResult<>(total, page, pageSize, rows);
+        }
     }
 
-    public void add(User user) { getDao().insert(user); }
-    public void update(User user) { getDao().update(user); }
-    public void delete(Long id) { getDao().deleteById(id); }
-    public void resetPassword(Long id, String newPwd) { getDao().updatePassword(id, newPwd); }
+    public void add(User user) {
+        try (SqlSession s = MyBatisUtil.openSession()) { s.getMapper(UserDao.class).insert(user); }
+    }
+    public void update(User user) {
+        try (SqlSession s = MyBatisUtil.openSession()) { s.getMapper(UserDao.class).update(user); }
+    }
+    public void delete(Long id) {
+        try (SqlSession s = MyBatisUtil.openSession()) { s.getMapper(UserDao.class).deleteById(id); }
+    }
+    public void resetPassword(Long id, String newPwd) {
+        try (SqlSession s = MyBatisUtil.openSession()) { s.getMapper(UserDao.class).updatePassword(id, newPwd); }
+    }
 }

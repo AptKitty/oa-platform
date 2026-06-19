@@ -1,180 +1,425 @@
 package com.oa.ui.panel;
 
-import com.oa.schedule.service.ScheduleService;                         //业务逻辑类，增删改查
-import com.oa.schedule.entity.CalendarEvent;                            //日程实体类（数据库），对应数据库里 sch_calendar_event 表的一行
-import javax.swing.*;                                                   //界面库；JButton（按钮）、JTable（表格）、JOptionPane（弹窗）、JTextField（输入框）、JComboBox（下拉框）
-import java.awt.*;                                                      //布局管理系统：引入 AWT 布局和颜色类。BorderLayout（上下左右中布局）、FlowLayout（横着一排布局）、GridLayout（网格布局）、Color（颜色）、Font（字体）
-import java.util.List;                                                  //列表类
-import javax.swing.table.DefaultTableModel;                             //表格的数据模型类，增删行
-public class CalendarPanel extends BasePanel {//创捷一个名为“日历面板”的类，继承父类“BasePanel
-    // createTable() → 建表格
-    //createToolBar() → 建工具栏
-    //showError() / confirm() → 弹窗提示
+import com.oa.schedule.service.ScheduleService;
+import com.oa.schedule.entity.CalendarEvent;
+import javax.swing.*;
+import javax.swing.border.LineBorder;
+import java.awt.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.YearMonth;
+import java.time.format.TextStyle;
+import java.util.List;
+import java.util.Locale;
 
-    private ScheduleService scheduleService = new ScheduleService();//成员变量，“scheduleService”为业务逻辑对象，与数据库互动
-    private JTable eventTable;//“eventTable”为界面上的 表格组件
+/**
+ * 日程日历面板 — 月/周/日三视图 + 增删改日程
+ */
+public class CalendarPanel extends BasePanel {
 
-    public CalendarPanel() {
-        initUI();
-    }//构造方法,调用“initUI()“方法
+    private ScheduleService scheduleService = new ScheduleService();
+    private JPanel calendarGrid;
+    private JLabel monthLabel;
+    private YearMonth currentMonth;
+    private String viewMode = "MONTH"; // MONTH / WEEK / DAY
+    private LocalDate selectedDate = LocalDate.now();
 
-    @Override
-    public String getPanelKey() {
-        return "SCHEDULE";
-    }//@Override 表示这个方法是从父类 BasePanel 继承来必须实现的。getPanelKey 返回一个英文标识
+    public CalendarPanel() { initUI(); }
 
-    @Override
-    public String getPanelTitle() {
-        return "日程日历";
-    }
-    //getPanelKey() 返回一个唯一标识，组员1 用这个字符串来注册面板
-    //getPanelTitle() 返回显示在菜单栏上的中文名称
+    @Override public String getPanelKey()   { return "SCHEDULE"; }
+    @Override public String getPanelTitle() { return "日程日历"; }
+
     private void initUI() {
-        add(createToolBar(this::refresh, this::addEvent, this::exportExcel), BorderLayout.NORTH);
-        //点"刷新" → 调用 refresh()
-        //点"新增" → 调用 addEvent()
-        //点"导出Excel" → 调用 exportExcel()
-        // 意思是放在顶部
-        //this::refresh 是"我的 refresh 方法"的简写
+        setLayout(new BorderLayout(10, 10));
 
-        String[] columns = {"ID", "标题", "开始时间", "结束时间", "类型"};//定义表格有 5 列
-        eventTable = createTable(columns);//createTable() 是 BasePanel 提供的，创建的表格单元格不可编辑。
-        add(new JScrollPane(eventTable), BorderLayout.CENTER);//把表格包一层滚动条，放在中间区域。
+        // === 顶部工具栏 ===
+        JPanel topBar = new JPanel(new BorderLayout());
+        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        JButton prevBtn = new JButton("<<");
+        prevBtn.addActionListener(e -> { navigate(-1); });
+        JButton nextBtn = new JButton(">>");
+        nextBtn.addActionListener(e -> { navigate(1); });
+        JButton todayBtn = new JButton("今天");
+        todayBtn.addActionListener(e -> { currentMonth = YearMonth.now(); selectedDate = LocalDate.now(); renderView(); });
+        monthLabel = new JLabel("", SwingConstants.CENTER);
+        monthLabel.setFont(new Font("Microsoft YaHei", Font.BOLD, 16));
+        navPanel.add(prevBtn); navPanel.add(monthLabel); navPanel.add(nextBtn); navPanel.add(todayBtn);
 
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));//创建底部按钮面板。FlowLayout(RIGHT) 表示按钮从右往左排列
-        JButton editBtn = new JButton("修改");//两个按钮，，“修改”按钮放在右边
-        editBtn.addActionListener(e -> editEvent());//绑事件，点删除调 editEvent()
-        JButton delBtn = new JButton("删除");//“删除”按钮放在底部
-        delBtn.addActionListener(e -> deleteEvent());//绑事件，点删除调 deleteEvent()
-        bottomPanel.add(editBtn);//把修改按钮加入底部面板
-        bottomPanel.add(delBtn);//把删除按钮加入底部面板
-        add(bottomPanel, BorderLayout.SOUTH);//把整个底部面板加到主面板的底部（SOUTH = 南 = 下）
-    }//画UI，顶部工具栏 + 中间表格 + 底部两个按钮
+        JPanel viewToggle = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 5));
+        for (String mode : new String[]{"MONTH", "WEEK", "DAY"}) {
+            JButton btn = new JButton(mode.equals("MONTH") ? "月" : mode.equals("WEEK") ? "周" : "日");
+            btn.addActionListener(e -> { viewMode = mode; renderView(); });
+            viewToggle.add(btn);
+        }
+        JButton addBtn = new JButton("+ 新建日程");
+        addBtn.addActionListener(e -> addEvent());
+        viewToggle.add(addBtn);
 
-    private void refresh() {
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();//获取此刻的时间
-        java.time.LocalDateTime start = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);//算出本月1号的初始时间。比如今天是6月9号，就算出6月1号0点
-        //withDayOfMonth(1) → 把日期设为本月 1 号
-        //withHour(0) → 小时设为 0
-        //withMinute(0) → 分钟设为 0
-        //withSecond(0) → 秒设为 0
-        java.time.LocalDateTime end = now.plusMonths(1).withDayOfMonth(1).minusDays(1).withHour(23).withMinute(59);//算出"本月 1 号 00:00:00"
-        //plusMonths(1) → 跳到下个月（7 月）
-        //withDayOfMonth(1) → 下月 1 号（7 月 1 号）
-        //minusDays(1) → 减 1 天（6 月 30 号）
-        //withHour(23).withMinute(59) → 23:59
-        java.util.List<CalendarEvent> events = scheduleService.getUserEvents(
-                getCurrentUserId(), start, end);//调用业务层查数据库
+        topBar.add(navPanel, BorderLayout.WEST);
+        topBar.add(viewToggle, BorderLayout.EAST);
+        add(topBar, BorderLayout.NORTH);
 
-        clearTable(eventTable);//调用父类方法，清空表格所有行。先把旧数据清掉，再填新的
-        DefaultTableModel model = (DefaultTableModel) eventTable.getModel();
-        for (CalendarEvent e : events) {//循环，events 里有多少条就执行多少次。e 是当前这一条日程
-            model.addRow(new Object[]{//往表格加一行。addRow 的参数是一个 Object 数组，数组里每个元素对应一列
-                    e.getId(), e.getTitle(), e.getStartTime(), e.getEndTime(), e.getEventType()
-            });//取这条日程的 5 个属性：ID、标题、开始时间、结束时间、类型
+        // === 日历网格区域 ===
+        calendarGrid = new JPanel();
+        add(new JScrollPane(calendarGrid), BorderLayout.CENTER);
+
+        currentMonth = YearMonth.now();
+        renderView();
+    }
+
+    private void navigate(int delta) {
+        switch (viewMode) {
+            case "MONTH": currentMonth = currentMonth.plusMonths(delta); break;
+            case "WEEK":  selectedDate = selectedDate.plusWeeks(delta); break;
+            case "DAY":   selectedDate = selectedDate.plusDays(delta); break;
+        }
+        renderView();
+    }
+
+    /** 根据 viewMode 渲染不同视图 */
+    private void renderView() {
+        switch (viewMode) {
+            case "MONTH": renderMonthView(); break;
+            case "WEEK":  renderWeekView(); break;
+            case "DAY":   renderDayView(); break;
         }
     }
 
-    private void addEvent() {//addEvent 方法——弹窗新增日程
-        JTextField titleField = new JTextField(20);//创建标题输入框，宽度 20 个字符
-        JTextField descField = new JTextField(20);//创建描述输入框
-        JTextField startField = new JTextField("2026-06-10 09:00", 20);//创建开始时间输入框，默认值 "2026-06-10 09:00"
-        JTextField endField = new JTextField("2026-06-10 10:00", 20);//创建结束时间输入框，默认值 "2026-06-10 10:00"
-        JComboBox<String> typeBox = new JComboBox<>(new String[]{"PERSONAL", "MEETING", "TASK"});//创建类型下拉框，三个选项：个人、会议、任务
+    // ==================== 月视图 ====================
+    private void renderMonthView() {
+        calendarGrid.removeAll();
+        monthLabel.setText(currentMonth.getYear() + "年 " + currentMonth.getMonthValue() + "月");
 
-        JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));//创建表单面板。GridLayout(5, 2, 5, 5) → 5 行 2 列，格子之间间距 5 像素
-        form.add(new JLabel("标题:"));//加一个标签"标题:"，占第 1 行第 1 格
-        form.add(titleField);//加标题输入框，占第 1 行第 2 格
-        form.add(new JLabel("描述:"));
-        form.add(descField);
-        form.add(new JLabel("开始时间:"));
-        form.add(startField);
-        form.add(new JLabel("结束时间:"));
-        form.add(endField);
-        form.add(new JLabel("类型:"));
-        form.add(typeBox);//下拉列表
+        calendarGrid.setLayout(new GridLayout(0, 7, 1, 1));
+        calendarGrid.setBackground(Color.LIGHT_GRAY);
 
-        int result = JOptionPane.showConfirmDialog(this, form, "新增日程", JOptionPane.OK_CANCEL_OPTION);//弹出确认对话框。this 是父面板，form 是表单内容，"新增日程" 是窗口标题。OK_CANCEL_OPTION 表示有"确定"和"取消"两个按钮。返回值存到 result 里
-        if (result != JOptionPane.OK_OPTION) return;//如果用户没点"确定"（点了取消或关了窗口），直接 return 退出，什么都不做
-
-        try {
-            CalendarEvent event = new CalendarEvent();//创建一个空的日程实体对象
-            event.setUserId(getCurrentUserId());//设置这条日程属于当前登录用户
-            event.setTitle(titleField.getText().trim());//取标题输入框的文字，trim() 去掉首尾空格，设入实体
-            event.setDescription(descField.getText().trim());//同理设置描述
-            event.setStartTime(java.time.LocalDateTime.parse(startField.getText().trim().replace(" ", "T")));//解析开始时间。用户输入 "2026-06-10 09:00"，replace(" ", "T") 把空格换成 T，变成 "2026-06-10T09:00"，然后 LocalDateTime.parse() 转成时间对象。
-            event.setEndTime(java.time.LocalDateTime.parse(endField.getText().trim().replace(" ", "T")));//同理解析结束时间
-            event.setEventType((String) typeBox.getSelectedItem());//取下拉框选中的值（"PERSONAL"/"MEETING"/"TASK"），(String) 是强制类型转换。
-
-            scheduleService.addEvent(event);//调用业务层，把日程实体写入数据库
-            refresh();//刷新表格，新增的那条就显示出来了
-        } catch (Exception ex) {//捕获任何异常
-            showError("新增失败: " + ex.getMessage());//弹错误对话框，显示具体错误信息
+        // 星期头
+        DayOfWeek[] days = {DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+                DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY};
+        for (DayOfWeek dow : days) {
+            JLabel header = new JLabel(dow.getDisplayName(TextStyle.SHORT, Locale.CHINESE), SwingConstants.CENTER);
+            header.setOpaque(true);
+            header.setBackground(new Color(63, 81, 181));
+            header.setForeground(Color.WHITE);
+            header.setFont(new Font("Microsoft YaHei", Font.BOLD, 12));
+            header.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+            calendarGrid.add(header);
         }
+
+        // 计算本月第一天是周几
+        LocalDate firstDay = currentMonth.atDay(1);
+        int startDow = firstDay.getDayOfWeek().getValue(); // Mon=1
+        int daysInMonth = currentMonth.lengthOfMonth();
+
+        // 获取本月事件
+        LocalDateTime rangeStart = currentMonth.atDay(1).atStartOfDay();
+        LocalDateTime rangeEnd = currentMonth.atEndOfMonth().atTime(23, 59);
+        List<CalendarEvent> events = scheduleService.getUserEvents(getCurrentUserId(), rangeStart, rangeEnd);
+
+        // 填充前面的空白格
+        for (int i = 1; i < startDow; i++) {
+            calendarGrid.add(new JPanel());
+        }
+
+        // 每一天的格子
+        for (int day = 1; day <= daysInMonth; day++) {
+            LocalDate date = currentMonth.atDay(day);
+            JPanel dayCell = createDayCell(date, events, day);
+            calendarGrid.add(dayCell);
+        }
+
+        calendarGrid.revalidate();
+        calendarGrid.repaint();
     }
 
-    private void exportExcel() {
-        com.oa.common.ExportUtil.exportToExcel(eventTable, "日程日历");//调用工具类的静态方法。把表格内容导出为 日程日历.xlsx 文件。弹一个保存对话框让用户选位置。
-    }//导出 Excel 方法
+    private JPanel createDayCell(LocalDate date, List<CalendarEvent> events, int dayNum) {
+        JPanel cell = new JPanel();
+        cell.setLayout(new BoxLayout(cell, BoxLayout.Y_AXIS));
+        cell.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY),
+                BorderFactory.createEmptyBorder(2, 3, 2, 3)));
+        cell.setBackground(Color.WHITE);
 
-    private void editEvent() {//修改日程方法
-        int row = eventTable.getSelectedRow();//获取用户在表格里选中了第几行。没选的话返回 -1
-        if (row < 0) { showError("请先选择一条日程"); return; }//如果没选（row = -1），弹提示然后退出
+        // 今天高亮
+        if (date.equals(LocalDate.now())) {
+            cell.setBackground(new Color(232, 245, 253));
+        }
 
-        JTextField titleField = new JTextField((String) eventTable.getValueAt(row, 1), 20);//创建标题输入框，预填当前选中行的第 1 列（标题列）的值。getValueAt(row, 1) 取第 row 行第 1 列
-        JTextField descField = new JTextField(20);//创建描述输入框（空的）
-        JTextField startField = new JTextField(eventTable.getValueAt(row, 2).toString().replace("T", " "), 20);//预填结束时间
-        JTextField endField = new JTextField(eventTable.getValueAt(row, 3).toString().replace("T", " "), 20);//创建下拉框
-        JComboBox<String> typeBox = new JComboBox<>(new String[]{"PERSONAL", "MEETING", "TASK"});//创建下拉框
-        typeBox.setSelectedItem(eventTable.getValueAt(row, 4));//把下拉框设为当前行第 4 列的值，比如原来是 MEETING 就显示 MEETING
+        // 日期标签
+        JLabel dayLabel = new JLabel(String.valueOf(dayNum));
+        dayLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 11));
+        if (date.equals(LocalDate.now())) {
+            dayLabel.setForeground(new Color(25, 118, 210));
+            dayLabel.setFont(new Font("Microsoft YaHei", Font.BOLD, 12));
+        }
+        dayLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cell.add(dayLabel);
+
+        // 当天事件（最多显示3个）
+        int count = 0;
+        for (CalendarEvent e : events) {
+            LocalDate eventDate = e.getStartTime().toLocalDate();
+            if (eventDate.equals(date)) {
+                if (count < 3) {
+                    JLabel eventLabel = new JLabel("· " + e.getTitle());
+                    eventLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 10));
+                    eventLabel.setForeground(new Color(63, 81, 181));
+                    eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    cell.add(eventLabel);
+                }
+                count++;
+            }
+        }
+        if (count > 3) {
+            JLabel more = new JLabel("  +" + (count - 3) + "条");
+            more.setFont(new Font("Microsoft YaHei", Font.PLAIN, 10));
+            more.setForeground(Color.GRAY);
+            more.setAlignmentX(Component.LEFT_ALIGNMENT);
+            cell.add(more);
+        }
+
+        // 点击当天显示日程列表
+        cell.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    selectedDate = date;
+                    viewMode = "DAY";
+                    renderView();
+                } else {
+                    selectedDate = date;
+                    showDayEvents(date);
+                }
+            }
+        });
+
+        cell.setPreferredSize(new Dimension(100, 80));
+        return cell;
+    }
+
+    // ==================== 周视图 ====================
+    private void renderWeekView() {
+        calendarGrid.removeAll();
+        LocalDate weekStart = selectedDate.with(DayOfWeek.MONDAY);
+        LocalDate weekEnd = weekStart.plusDays(6);
+        monthLabel.setText(weekStart + " ~ " + weekEnd);
+
+        LocalDateTime rangeStart = weekStart.atStartOfDay();
+        LocalDateTime rangeEnd = weekEnd.atTime(23, 59);
+        List<CalendarEvent> events = scheduleService.getUserEvents(getCurrentUserId(), rangeStart, rangeEnd);
+
+        calendarGrid.setLayout(new GridLayout(0, 8, 1, 1));
+        calendarGrid.setBackground(Color.LIGHT_GRAY);
+
+        // 时间列头
+        calendarGrid.add(new JLabel(""));
+        for (int i = 0; i < 7; i++) {
+            LocalDate d = weekStart.plusDays(i);
+            JLabel header = new JLabel(d.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.CHINESE)
+                    + " " + d.getDayOfMonth(), SwingConstants.CENTER);
+            header.setOpaque(true);
+            header.setBackground(new Color(63, 81, 181));
+            header.setForeground(Color.WHITE);
+            header.setFont(new Font("Microsoft YaHei", Font.BOLD, 12));
+            calendarGrid.add(header);
+        }
+
+        // 时间行 (8:00 - 20:00)
+        for (int hour = 8; hour <= 20; hour++) {
+            JLabel hourLabel = new JLabel(String.format("%02d:00", hour), SwingConstants.CENTER);
+            hourLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 10));
+            calendarGrid.add(hourLabel);
+
+            for (int i = 0; i < 7; i++) {
+                LocalDate d = weekStart.plusDays(i);
+                JPanel slot = new JPanel(new BorderLayout());
+                slot.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+                slot.setBackground(Color.WHITE);
+                slot.setPreferredSize(new Dimension(100, 40));
+
+                // 检查这个时间段有没有事件
+                for (CalendarEvent e : events) {
+                    if (e.getStartTime().toLocalDate().equals(d)
+                            && e.getStartTime().getHour() == hour) {
+                        JLabel ev = new JLabel(e.getTitle());
+                        ev.setFont(new Font("Microsoft YaHei", Font.PLAIN, 9));
+                        ev.setBackground(new Color(187, 222, 251));
+                        ev.setOpaque(true);
+                        slot.add(ev, BorderLayout.CENTER);
+                        break;
+                    }
+                }
+                calendarGrid.add(slot);
+            }
+        }
+
+        calendarGrid.revalidate();
+        calendarGrid.repaint();
+    }
+
+    // ==================== 日视图 ====================
+    private void renderDayView() {
+        calendarGrid.removeAll();
+        monthLabel.setText(selectedDate + " " + selectedDate.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.CHINESE));
+
+        LocalDateTime rangeStart = selectedDate.atStartOfDay();
+        LocalDateTime rangeEnd = selectedDate.atTime(23, 59);
+        List<CalendarEvent> dayEvents = scheduleService.getUserEvents(getCurrentUserId(), rangeStart, rangeEnd);
+
+        calendarGrid.setLayout(new BorderLayout());
+
+        JPanel listPanel = new JPanel();
+        listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
+
+        if (dayEvents.isEmpty()) {
+            JLabel empty = new JLabel("当天没有日程", SwingConstants.CENTER);
+            empty.setForeground(Color.GRAY);
+            listPanel.add(empty);
+        } else {
+            for (CalendarEvent e : dayEvents) {
+                JPanel row = new JPanel(new BorderLayout(10, 0));
+                row.setBorder(BorderFactory.createCompoundBorder(
+                        new LineBorder(Color.LIGHT_GRAY),
+                        BorderFactory.createEmptyBorder(8, 10, 8, 10)));
+                row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+
+                String timeStr = e.getStartTime().toLocalTime().toString().substring(0, 5)
+                        + " - " + e.getEndTime().toLocalTime().toString().substring(0, 5);
+                JLabel timeLabel = new JLabel(timeStr);
+                timeLabel.setFont(new Font("Microsoft YaHei", Font.BOLD, 13));
+                row.add(timeLabel, BorderLayout.WEST);
+
+                JLabel titleLabel = new JLabel(e.getTitle());
+                titleLabel.setFont(new Font("Microsoft YaHei", Font.PLAIN, 13));
+                row.add(titleLabel, BorderLayout.CENTER);
+
+                JLabel typeLabel = new JLabel(e.getEventType());
+                typeLabel.setForeground(Color.GRAY);
+                row.add(typeLabel, BorderLayout.EAST);
+
+                // 双击编辑
+                row.addMouseListener(new java.awt.event.MouseAdapter() {
+                    public void mouseClicked(java.awt.event.MouseEvent ev) {
+                        if (ev.getClickCount() == 2) editEventDialog(e);
+                    }
+                });
+
+                listPanel.add(row);
+            }
+        }
+
+        calendarGrid.add(new JScrollPane(listPanel), BorderLayout.CENTER);
+
+        // 底部按钮
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton addBtn = new JButton("+ 当天新增日程");
+        addBtn.addActionListener(e -> addEventForDate(selectedDate));
+        JButton delBtn = new JButton("删除选中日程");
+        delBtn.addActionListener(e -> {
+            // 简单方式：弹出输入框问ID
+            String idStr = JOptionPane.showInputDialog(this, "输入要删除的日程ID：");
+            if (idStr != null && !idStr.isEmpty()) {
+                try {
+                    scheduleService.deleteEvent(Long.parseLong(idStr));
+                    renderView();
+                } catch (Exception ex) { showError("删除失败: " + ex.getMessage()); }
+            }
+        });
+        bottom.add(addBtn);
+        bottom.add(delBtn);
+        calendarGrid.add(bottom, BorderLayout.SOUTH);
+
+        calendarGrid.revalidate();
+        calendarGrid.repaint();
+    }
+
+    // ==================== 弹窗：显示某天事件列表 ====================
+    private void showDayEvents(LocalDate date) {
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.atTime(23, 59);
+        List<CalendarEvent> events = scheduleService.getUserEvents(getCurrentUserId(), start, end);
+
+        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        DefaultListModel<String> model = new DefaultListModel<>();
+        for (CalendarEvent e : events) {
+            String time = e.getStartTime().toLocalTime().toString().substring(0, 5);
+            model.addElement("[" + time + "] " + e.getTitle() + " (" + e.getEventType() + ")");
+        }
+        if (events.isEmpty()) model.addElement("（无日程）");
+        JList<String> list = new JList<>(model);
+        panel.add(new JScrollPane(list), BorderLayout.CENTER);
+
+        JButton addBtn = new JButton("新增");
+        addBtn.addActionListener(e -> { addEventForDate(date); });
+        panel.add(addBtn, BorderLayout.SOUTH);
+
+        JOptionPane.showMessageDialog(this, panel, date + " 日程", JOptionPane.PLAIN_MESSAGE);
+        renderView();
+    }
+
+    // ==================== 新增日程 ====================
+    private void addEvent() {
+        addEventForDate(selectedDate);
+    }
+
+    private void addEventForDate(LocalDate date) {
+        JTextField titleField = new JTextField(20);
+        JTextArea descField = new JTextArea(3, 20);
+        JTextField startTimeField = new JTextField("09:00", 10);
+        JTextField endTimeField = new JTextField("10:00", 10);
+        JComboBox<String> typeBox = new JComboBox<>(new String[]{"PERSONAL", "MEETING", "TASK"});
 
         JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));
         form.add(new JLabel("标题:")); form.add(titleField);
-        form.add(new JLabel("描述:")); form.add(descField);
-        form.add(new JLabel("开始时间:")); form.add(startField);
-        form.add(new JLabel("结束时间:")); form.add(endField);
-        form.add(new JLabel("类型:")); form.add(typeBox);//和新增一样，拼表单。唯一区别是输入框里已经有数据
+        form.add(new JLabel("描述:")); form.add(new JScrollPane(descField));
+        form.add(new JLabel("开始时间:")); form.add(startTimeField);
+        form.add(new JLabel("结束时间:")); form.add(endTimeField);
+        form.add(new JLabel("类型:")); form.add(typeBox);
 
-        if (JOptionPane.showConfirmDialog(this, form, "修改日程",
-                JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;//弹窗。点取消就退出
+        if (JOptionPane.showConfirmDialog(this, form, "新建日程 - " + date,
+                JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
 
-        try {//和新增一样，可能出错
+        try {
             CalendarEvent event = new CalendarEvent();
-            event.setId((Long) eventTable.getValueAt(row, 0));//创建实体，关键区别：设置 ID。有 ID 就是修改，没 ID 就是新增。(Long) 转换是因为表格里存的是 Object 类型。
             event.setUserId(getCurrentUserId());
             event.setTitle(titleField.getText().trim());
             event.setDescription(descField.getText().trim());
-            event.setStartTime(java.time.LocalDateTime.parse(startField.getText().trim().replace(" ", "T")));
-            event.setEndTime(java.time.LocalDateTime.parse(endField.getText().trim().replace(" ", "T")));
-            event.setEventType((String) typeBox.getSelectedItem());//跟新增一样，依次设置各字段
-
-            scheduleService.updateEvent(event);//调修改方法，背后执行
-            refresh();//刷新
-        } catch (Exception ex) {
-            showError("修改失败: " + ex.getMessage());
-        }
-    }//异常处理和结束
-
-    private void deleteEvent() {//删除方法
-        int row = eventTable.getSelectedRow();
-        if (row < 0) { showError("请先选择一条日程"); return; }//同修改，先检查有没有选中
-        if (!confirm("确定要删除这条日程吗？")) return;//if (!confirm("确定要删除这条日程吗？")) return;
-
-        Long id = (Long) eventTable.getValueAt(row, 0);//取出选中行的 ID
-        scheduleService.deleteEvent(id);//调删除方法。执行
-        refresh();//刷新表格，被删的那条就消失了
+            event.setStartTime(LocalDateTime.of(date, LocalTime.parse(startTimeField.getText().trim())));
+            event.setEndTime(LocalDateTime.of(date, LocalTime.parse(endTimeField.getText().trim())));
+            event.setEventType((String) typeBox.getSelectedItem());
+            scheduleService.addEvent(event);
+            renderView();
+        } catch (Exception ex) { showError("新建失败: " + ex.getMessage()); }
     }
 
-    // ===== 测试入口（最终合并时删除） =====
-    public static void main(String[] args) {//测试入口。main 方法，可以直接右键运行
-        JFrame frame = new JFrame("日程日历");//创建一个窗口（JFrame），标题"日程日历"
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//点关闭按钮就退出程序
-        frame.setSize(800, 600);// frame.setSize(800, 600)
-        frame.setLocationRelativeTo(null);//窗口屏幕居中。null 表示相对于屏幕居中
-        CalendarPanel panel = new CalendarPanel();//创建一个 CalendarPanel 对象。这行会触发 initUI() 画界面
-        panel.setCurrentUser(1L, "测试用户");//假装当前登录用户是 ID=1 的"测试用户"
-        frame.add(panel);//把面板放进窗口
-        frame.setVisible(true);//让窗口显示出来
-        panel.refresh();//加载数据
+    /** 编辑已有日程 */
+    private void editEventDialog(CalendarEvent e) {
+        JTextField titleField = new JTextField(e.getTitle(), 20);
+        JTextArea descField = new JTextArea(e.getDescription() != null ? e.getDescription() : "", 3, 20);
+        JTextField startField = new JTextField(e.getStartTime().toString().replace("T", " "), 20);
+        JTextField endField = new JTextField(e.getEndTime().toString().replace("T", " "), 20);
+        JComboBox<String> typeBox = new JComboBox<>(new String[]{"PERSONAL", "MEETING", "TASK"});
+        typeBox.setSelectedItem(e.getEventType());
+
+        JPanel form = new JPanel(new GridLayout(5, 2, 5, 5));
+        form.add(new JLabel("标题:")); form.add(titleField);
+        form.add(new JLabel("描述:")); form.add(new JScrollPane(descField));
+        form.add(new JLabel("开始时间:")); form.add(startField);
+        form.add(new JLabel("结束时间:")); form.add(endField);
+        form.add(new JLabel("类型:")); form.add(typeBox);
+
+        if (JOptionPane.showConfirmDialog(this, form, "编辑日程",
+                JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION) return;
+
+        try {
+            e.setTitle(titleField.getText().trim());
+            e.setDescription(descField.getText().trim());
+            e.setStartTime(LocalDateTime.parse(startField.getText().trim().replace(" ", "T")));
+            e.setEndTime(LocalDateTime.parse(endField.getText().trim().replace(" ", "T")));
+            e.setEventType((String) typeBox.getSelectedItem());
+            scheduleService.updateEvent(e);
+            renderView();
+        } catch (Exception ex) { showError("编辑失败: " + ex.getMessage()); }
     }
 }

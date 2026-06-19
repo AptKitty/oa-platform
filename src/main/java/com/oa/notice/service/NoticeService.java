@@ -29,4 +29,18 @@ public class NoticeService {
     public int getReadCount(Long noticeId) { return getDao().getReadCount(noticeId); }
 
     public List<Long> getReadUserIds(Long noticeId) { return getDao().getReadUserIds(noticeId); }
+
+                    // ===== 面板需要但 Service 未暴露的方法 =====
+    public List<Notice> activateScheduledNotices() {
+        List<Notice> notices = getDao().findScheduledToActivate();
+        for (Notice n : notices) {
+            n.setStatus(1);
+            getDao().update(n);
+        }
+        return notices;
+    }
+    public int getActiveUserCount() { return getDao().getActiveUserCount(); }
+    public List<java.util.Map<String, Object>> getReadUserNames(Long noticeId) { return getDao().getReadUserNames(noticeId); }
+    public List<java.util.Map<String, Object>> getUnreadUserNames(Long noticeId) { return getDao().getUnreadUserNames(noticeId); }
+
 }

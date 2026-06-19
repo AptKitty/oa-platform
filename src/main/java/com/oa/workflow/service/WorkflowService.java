@@ -5,6 +5,11 @@ import com.oa.workflow.entity.*;
 import com.oa.common.MyBatisUtil;
 import com.oa.common.Constants;
 import com.oa.common.BusinessException;
+import com.oa.attendance.service.AttendanceService;
+import com.oa.attendance.dao.LeaveDao;
+import com.oa.attendance.entity.LeaveRequest;
+import com.oa.notice.service.MessageService;
+import com.oa.notice.entity.Message;
 import com.oa.system.dao.UserDao;
 import com.oa.system.dao.DeptDao;
 import com.oa.system.dao.RoleDao;
@@ -203,7 +208,7 @@ public class WorkflowService {
      * @param approverId 审批人ID
      * @param comment    审批意见
      */
-    public void approve(Long instanceId, Long approverId, String comment) {
+    public void approve(Long instanceId, Long approverId, String comment, String attachments) {
         SqlSession session = MyBatisUtil.openSession(false);
         try {
             ProcessInstanceDao instanceDao = session.getMapper(ProcessInstanceDao.class);
@@ -225,6 +230,7 @@ public class WorkflowService {
             record.setApproverId(approverId);
             record.setAction(Constants.ACTION_APPROVE);
             record.setComment(comment);
+            record.setAttachments(attachments);
             instanceDao.insertApprovalRecord(record);
 
             // ④ 查询流程实例和所有节点，找到当前节点
@@ -241,7 +247,7 @@ public class WorkflowService {
 
             // ⑤ 会签(SIGN)判断：查该节点是否还有未处理的任务
             // 如果还有人在等待审批则提交事务并返回，不前进到下一节点
-            if (Constants.NODE_TYPE_SIGN.equals(currentNode.getNodeType())) {
+            if (Constants.NODE_TYPE_SIGN.equals(currentNode.getNodeType()) || Constants.NODE_TYPE_OR_SIGN.equals(currentNode.getNodeType())) {
                 int pendingCount = taskDao.countPendingByNodeId(currentNode.getId());
                 if (pendingCount > 0) {
                     session.commit();
@@ -262,6 +268,8 @@ public class WorkflowService {
             if (nextNode == null) {
                 instanceDao.updateStatus(instanceId, Constants.APPROVAL_STATUS_PASSED);
                 session.commit();
+                sendApproveResultNotification(instance, "已通过");
+                handlePostApproval(instance);
                 return;
             }
 
@@ -292,6 +300,8 @@ public class WorkflowService {
             if (nextNode == null) {
                 instanceDao.updateStatus(instanceId, Constants.APPROVAL_STATUS_PASSED);
                 session.commit();
+                sendApproveResultNotification(instance, "已通过");
+                handlePostApproval(instance);
                 return;
             }
 
@@ -344,6 +354,8 @@ public class WorkflowService {
                     if (nextNode == null) {
                         instanceDao.updateStatus(instanceId, Constants.APPROVAL_STATUS_PASSED);
                         session.commit();
+                sendApproveResultNotification(instance, "已通过");
+                handlePostApproval(instance);
                         return;
                     }
                 }
@@ -353,6 +365,8 @@ public class WorkflowService {
             if (nextNode == null) {
                 instanceDao.updateStatus(instanceId, Constants.APPROVAL_STATUS_PASSED);
                 session.commit();
+                sendApproveResultNotification(instance, "已通过");
+                handlePostApproval(instance);
                 return;
             }
 
@@ -373,7 +387,6 @@ public class WorkflowService {
                 t.setStatus("PENDING");
                 taskDao.insert(t);
             }
-            session.commit();
             session.commit();
 
         } catch (BusinessException e) {
@@ -400,7 +413,7 @@ public class WorkflowService {
      * @param approverId 审批人ID
      * @param comment    驳回理由
      */
-    public void reject(Long instanceId, Long approverId, String comment) {
+    public void reject(Long instanceId, Long approverId, String comment, String attachments) {
         SqlSession session = MyBatisUtil.openSession(false);
         try {
             ProcessInstanceDao instanceDao = session.getMapper(ProcessInstanceDao.class);
@@ -421,6 +434,7 @@ public class WorkflowService {
             record.setApproverId(approverId);
             record.setAction(Constants.ACTION_REJECT);
             record.setComment(comment);
+            record.setAttachments(attachments);
             instanceDao.insertApprovalRecord(record);
 
             // ④ 更新流程实例状态为已驳回(流程结束)
@@ -445,6 +459,67 @@ public class WorkflowService {
      * @param page     页码(从1开始)
      * @param pageSize 每页条数
      */
+
+    /**
+     * 审批通过后置处理：检查是否为请假模板，自动扣减请假额度
+     */
+    
+    /** 发送审批通知给所有审批人 */
+    private void sendApprovalNotifications(ProcessInstance instance, List<Long> approverIds, SqlSession session) {
+        try {
+            MessageService messageService = new MessageService();
+            for (Long approverId : approverIds) {
+                Message msg = new Message();
+                msg.setSenderId(0L); // 系统发送
+                msg.setReceiverId(approverId);
+                msg.setTitle("新的审批待办");
+                msg.setContent("您有一项待审批的申请：【" + instance.getDefName() + "】，请及时处理。");
+                msg.setMsgType("APPROVAL");
+                messageService.send(msg);
+            }
+        } catch (Exception e) {
+            System.err.println("发送审批通知失败: " + e.getMessage());
+        }
+    }
+
+    /** 发送审批结果通知给申请人 */
+    private void sendApproveResultNotification(ProcessInstance instance, String result) {
+        try {
+            MessageService messageService = new MessageService();
+            Message msg = new Message();
+            msg.setSenderId(0L); // 系统发送
+            msg.setReceiverId(instance.getApplicantId());
+            msg.setTitle("审批结果通知");
+            msg.setContent("您的申请【" + instance.getDefName() + "】已" + result + "，请查看详情。");
+            msg.setMsgType("APPROVAL");
+            messageService.send(msg);
+        } catch (Exception e) {
+            System.err.println("发送审批结果通知失败: " + e.getMessage());
+        }
+    }
+
+    private void handlePostApproval(ProcessInstance instance) {
+        try {
+            FormTemplateDao templateDao = MyBatisUtil.openSession().getMapper(FormTemplateDao.class);
+            FormTemplate template = templateDao.findById(instance.getTemplateId());
+            if (template == null || !"LEAVE".equals(template.getTemplateCode())) return;
+
+            // 从 form_data JSON 中取请假类型和天数
+            ObjectMapper mapper = new ObjectMapper();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> formData = mapper.readValue(instance.getFormData(), Map.class);
+            String leaveType = formData.get("leaveType") != null ? formData.get("leaveType").toString() : null;
+            Object daysObj = formData.get("days");
+            if (leaveType == null || daysObj == null) return;
+
+            double days = Double.parseDouble(daysObj.toString());
+            AttendanceService attendanceService = new AttendanceService();
+            attendanceService.deductLeaveQuota(instance.getApplicantId(), leaveType, days);
+        } catch (Exception e) {
+            System.err.println("请假额度扣减失败: " + e.getMessage());
+        }
+    }
+
     public List<ProcessInstance> getMyApplications(Long userId, String status, int page, int pageSize) {
         int offset = (page - 1) * pageSize;
         return MyBatisUtil.openSession().getMapper(ProcessInstanceDao.class)
@@ -539,3 +614,7 @@ public class WorkflowService {
                 .findPendingByApproverId(approverId, offset, pageSize);
     }
 }
+
+
+
+

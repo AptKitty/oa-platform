@@ -17,13 +17,13 @@ INSERT INTO sys_dept (id, parent_id, dept_name, dept_code, sort_order, status) V
 -- 密码 MD5("admin") = 21232f297a57a5a743894a0e4a801fc3
 
 -- 补充审批人用户（对应 init_data.sql 中的 approver_id=2~6，密码均为 123456）
-INSERT INTO sys_user (id, username, password, real_name, phone, email, dept_id, position, hire_date, status) VALUES
+INSERT INTO sys_user (id, username, password, real_name, phone, email, dept_id, leader_id, position, hire_date, status) VALUES
 (2, 'zhangjl', 'e10adc3949ba59abbe56e057f20f883e', '张经理', '2024-03-15', '13800000002', 'zhangjl@oa.com', 2, '部门经理', 1),
 (3, 'lizj',    'e10adc3949ba59abbe56e057f20f883e', '李总监', '2023-06-01', '13800000003', 'lizj@oa.com',   1, '技术总监', 1),
 (4, 'wanghr',  'e10adc3949ba59abbe56e057f20f883e', '王HR',   '2024-09-01', '13800000004', 'wanghr@oa.com', 5, '人事专员', 1),
 (5, 'zhaocw',  'e10adc3949ba59abbe56e057f20f883e', '赵财务', '2024-06-15', '13800000005', 'zhaocw@oa.com', 4, '财务专员', 1),
 (6, 'sunxz',   'e10adc3949ba59abbe56e057f20f883e', '孙行政', '2024-09-01', '13800000006', 'sunxz@oa.com',  5, '行政专员', 1);
-INSERT INTO sys_user (id, username, password, real_name, phone, email, dept_id, position, hire_date, status) VALUES
+INSERT INTO sys_user (id, username, password, real_name, phone, email, dept_id, leader_id, position, hire_date, status) VALUES
 (1, 'admin', '21232f297a57a5a743894a0e4a801fc3', '系统管理员', '13800000000', 'admin@oa.com', 1, '系统管理员', '2024-01-01', 1);
 
 -- ==================== 角色: 5种 ====================
@@ -168,4 +168,16 @@ INSERT INTO sch_meeting (title, room_id, host_id, start_time, end_time, descript
 INSERT INTO sch_meeting_participant (meeting_id, user_id) VALUES
 (1, 1), (1, 2), (1, 3), (1, 4),
 (2, 1), (2, 3), (2, 4);
+
+-- ==================== ????: 7? x 6??? = 42? ====================
+
+INSERT INTO att_leave_quota (user_id, year, leave_type, total_days, used_days) VALUES
+(1, 2026, '??', 10, 0), (1, 2026, '??', 5, 0), (1, 2026, '??', 5, 0), (1, 2026, '??', 3, 0), (1, 2026, '??', 15, 0), (1, 2026, '??', 3, 0),
+(2, 2026, '??', 10, 0), (2, 2026, '??', 5, 0), (2, 2026, '??', 5, 0), (2, 2026, '??', 3, 0), (2, 2026, '??', 15, 0), (2, 2026, '??', 3, 0),
+(3, 2026, '??', 10, 0), (3, 2026, '??', 5, 0), (3, 2026, '??', 5, 0), (3, 2026, '??', 3, 0), (3, 2026, '??', 15, 0), (3, 2026, '??', 3, 0),
+(4, 2026, '??', 10, 0), (4, 2026, '??', 5, 0), (4, 2026, '??', 5, 0), (4, 2026, '??', 3, 0), (4, 2026, '??', 15, 0), (4, 2026, '??', 3, 0),
+(5, 2026, '??', 10, 0), (5, 2026, '??', 5, 0), (5, 2026, '??', 5, 0), (5, 2026, '??', 3, 0), (5, 2026, '??', 15, 0), (5, 2026, '??', 3, 0),
+(6, 2026, '??', 10, 0), (6, 2026, '??', 5, 0), (6, 2026, '??', 5, 0), (6, 2026, '??', 3, 0), (6, 2026, '??', 15, 0), (6, 2026, '??', 3, 0),
+(7, 2026, '??', 10, 0), (7, 2026, '??', 5, 0), (7, 2026, '??', 5, 0), (7, 2026, '??', 3, 0), (7, 2026, '??', 15, 0), (7, 2026, '??', 3, 0)
+ON DUPLICATE KEY UPDATE total_days=VALUES(total_days);
 

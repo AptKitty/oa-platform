@@ -78,4 +78,36 @@
         INSERT INTO adm_vehicle_record(vehicle_id, user_id, start_time, end_time, destination, purpose)
         VALUES(#{vehicleId}, #{userId}, #{startTime}, #{endTime}, #{destination}, #{purpose})
     </insert>
+
+
+    <!-- ===== ????????? ===== -->
+    <update id="updateAssetStatus">
+        UPDATE adm_asset SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <!-- ===== ??????????? ===== -->
+    <select id="findAssetRecordsByAssetId" resultType="AssetRecord">
+        SELECT * FROM adm_asset_record WHERE asset_id = #{assetId} ORDER BY action_time DESC
+    </select>
+
+    <!-- ===== ??????????? ===== -->
+    <select id="findBookingsByUser" resultType="RoomBooking">
+        SELECT * FROM adm_room_booking WHERE user_id = #{userId} ORDER BY start_time DESC
+    </select>
+
+    <!-- ===== ??????? ===== -->
+    <update id="cancelBooking">
+        UPDATE adm_room_booking SET status = 'CANCELLED' WHERE id = #{id}
+    </update>
+
+    <!-- ===== ????????? ===== -->
+    <update id="updateVehicleStatus">
+        UPDATE adm_vehicle SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <!-- ===== ????????? ===== -->
+    <select id="findVehicleRecords" resultType="VehicleRecord">
+        SELECT * FROM adm_vehicle_record WHERE vehicle_id = #{vehicleId} ORDER BY start_time DESC
+    </select>
+
 </mapper>

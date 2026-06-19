@@ -3,6 +3,7 @@ package com.oa.system.service;
 import com.oa.system.dao.DeptDao;
 import com.oa.system.entity.Dept;
 import com.oa.common.MyBatisUtil;
+import org.apache.ibatis.session.SqlSession;
 import java.util.List;
 
 /**
@@ -10,37 +11,35 @@ import java.util.List;
  */
 public class DeptService {
 
-    private DeptDao getDao() {
-        return MyBatisUtil.openSession().getMapper(DeptDao.class);
-    }
-
     public Dept findById(Long id) {
-        return getDao().findById(id);
+        try (SqlSession s = MyBatisUtil.openSession()) { return s.getMapper(DeptDao.class).findById(id); }
     }
 
-    /** 获取所有部门（平铺列表） */
+             /** 获取所有部门（平铺列表） */
     public List<Dept> findAll() {
-        return getDao().findAll();
+        try (SqlSession s = MyBatisUtil.openSession()) { return s.getMapper(DeptDao.class).findAll(); }
     }
 
-    /** 获取指定部门的直接子部门 */
+             /** 获取所有部门（平铺列表） */
     public List<Dept> findByParentId(Long parentId) {
-        return getDao().findByParentId(parentId);
+        try (SqlSession s = MyBatisUtil.openSession()) { return s.getMapper(DeptDao.class).findByParentId(parentId); }
     }
 
     public void add(Dept dept) {
-        getDao().insert(dept);
+        try (SqlSession s = MyBatisUtil.openSession()) { s.getMapper(DeptDao.class).insert(dept); }
     }
 
     public void update(Dept dept) {
-        getDao().update(dept);
+        try (SqlSession s = MyBatisUtil.openSession()) { s.getMapper(DeptDao.class).update(dept); }
     }
 
     public void delete(Long id) {
-        // 有子部门时不允许删除
-        if (getDao().countByParentId(id) > 0) {
-            throw new com.oa.common.BusinessException("该部门下存在子部门，无法删除");
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            DeptDao dao = s.getMapper(DeptDao.class);
+            if (dao.countByParentId(id) > 0) {
+                throw new com.oa.common.BusinessException("该部门下存在子部门，无法删除");
+            }
+            dao.deleteById(id);
         }
-        getDao().deleteById(id);
     }
 }

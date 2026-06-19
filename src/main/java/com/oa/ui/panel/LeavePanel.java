@@ -1,6 +1,11 @@
 package com.oa.ui.panel;
 
 import com.oa.attendance.entity.LeaveRequest;
+import com.oa.workflow.service.WorkflowService;
+import com.oa.workflow.dao.ProcessDefinitionDao;
+import com.oa.workflow.entity.ProcessDefinition;
+import com.oa.common.MyBatisUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oa.attendance.service.AttendanceService;
 
 import javax.swing.*;
@@ -12,6 +17,7 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * 请假申请面板 — 选择假期类型 → 填写日期范围 → 查看额度 → 提交

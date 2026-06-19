@@ -1,10 +1,14 @@
 package com.oa.ui.frame;
 
 import com.oa.system.service.UserService;
+import com.oa.system.service.MenuService;
+import com.oa.system.entity.Menu;
 import com.oa.system.entity.User;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * 登录窗口
@@ -73,10 +77,19 @@ public class LoginFrame extends BaseFrame {
         new Thread(() -> {
             try {
                 User user = userService.login(username, password);
+                // 加载用户菜单权限码
+                Set<String> menuCodes = new HashSet<>();
+                try {
+                    for (Menu m : new MenuService().findByUserId(user.getId())) {
+                        if (m.getMenuCode() != null) menuCodes.add(m.getMenuCode());
+                    }
+                } catch (Exception ignored) {}
+                final Set<String> codes = menuCodes;
                 SwingUtilities.invokeLater(() -> {
                     setCurrentUser(user.getId(), user.getRealName());
                     MainFrame mainFrame = new MainFrame();
                     mainFrame.setCurrentUser(user.getId(), user.getRealName(), user.getDeptId());
+                    mainFrame.setAllowedMenuCodes(codes);
                     mainFrame.initUI();
                     mainFrame.setVisible(true);
                     dispose();

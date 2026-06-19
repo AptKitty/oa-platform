@@ -25,4 +25,8 @@ public class StatService {
     public List<StatResultVO> getApprovalTrend(int year) { return getDao().getMonthlyApprovalTrend(year); }
 
     public List<StatResultVO> getDeptUserCount() { return getDao().getDeptUserCount(); }
+
+                    // ===== 面板需要但 Service 未暴露的方法 =====
+    public java.util.Map<String, Object> getPendingTaskStats() { return getDao().getPendingTaskStats(); }
+
 }

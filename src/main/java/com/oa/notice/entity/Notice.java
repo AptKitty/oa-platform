@@ -5,6 +5,7 @@ public class Notice {
     private String title;
     private String content;
     private String contentHtml;
+    private String attachment;
     private java.time.LocalDateTime scheduledTime;
     private Long publisherId;
     private Integer isTop;
@@ -28,8 +29,11 @@ public class Notice {
     public void setIsTop(Integer isTop) { this.isTop = isTop; }
     public Integer getStatus() { return status; }
     public void setStatus(Integer status) { this.status = status; }
-    public java.time.LocalDateTime getCreateTime() { return createTime; }
+        public String getAttachment() { return attachment; }
+    public void setAttachment(String attachment) { this.attachment = attachment; }
+public java.time.LocalDateTime getCreateTime() { return createTime; }
     public void setCreateTime(java.time.LocalDateTime createTime) { this.createTime = createTime; }
     public java.time.LocalDateTime getUpdateTime() { return updateTime; }
     public void setUpdateTime(java.time.LocalDateTime updateTime) { this.updateTime = updateTime; }
 }
+

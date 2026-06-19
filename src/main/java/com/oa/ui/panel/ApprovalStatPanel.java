@@ -1,32 +1,34 @@
-package com.oa.ui.panel;//QQQQQQQQQQQQQQQQQQQ
+﻿package com.oa.ui.panel;
 
-import com.oa.statistics.service.StatService;//引入统计业务类。统计大屏的数据
-import com.oa.statistics.entity.StatResultVO;//引入统计结果实体类。StatResultVO 只有三个字段：name（名称）、value（数值）、label（标签）。不管查什么统计，都统一用这个类装数据。
-import org.jfree.chart.ChartFactory;//：引入 JFreeChart 的图表工厂。它能一句话生成柱状图、饼图、折线图
-import org.jfree.chart.ChartPanel;//引入图表面板。JFreeChart 画的图不能直接加到 Swing 界面上，需要包一层 ChartPanel
-import org.jfree.chart.JFreeChart;//引入图表对象。ChartFactory.createBarChart() 返回的就是这个类型
-import org.jfree.data.category.DefaultCategoryDataset;//引入柱状图专用数据集。柱状图需要两组数据：一组是分类（横轴），一组是数值（纵轴）。DefaultCategoryDataset 就是装这个的。
-import javax.swing.*;//界面库,* 是通配符
-import java.awt.*;//布局库
-import java.util.List;//列表类
+import com.oa.statistics.service.StatService;
+import com.oa.statistics.entity.StatResultVO;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.data.category.DefaultCategoryDataset;
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 
-public class ApprovalStatPanel extends BasePanel {//声明类，继承 BasePanel
+public class ApprovalStatPanel extends BasePanel {
 
-    private StatService statService = new StatService();//创建统计业务对象
+    private StatService statService = new StatService();
 
     public ApprovalStatPanel() {
         initUI();
-    }//构造函数,构造函数负责初始化，”initUI“方法负责画界面
-
-    @Override//重写父类方法
-    public String getPanelKey() { return "STAT_APPROVAL"; }//返回这个面板的唯一标识。组员1 用 "STAT_APPROVAL" 这个字符串在 MainFrame 里注册。
+    }
 
     @Override
-    public String getPanelTitle() { return "审批效率统计"; }//返回菜单上显示的中文名
+    public String getPanelKey() { return "STAT_APPROVAL"; }
+    @Override
+    public String getPanelTitle() { return "审批效率统计"; }
 
     private void initUI() {
-        add(createToolBar(this::refresh, null, null), BorderLayout.NORTH);//调父类的 createToolBar()，传入三个方法引用。第一个是 this::refresh（点刷新调 refresh），后面两个是 null（不生成新增和导出按钮）。返回一个装了按钮的面板，然后 add(..., BorderLayout.NORTH) 放到顶部。
-        refresh();//界面画好后，立刻加载一次数据
+        add(createToolBar(this::refresh, null, null), BorderLayout.NORTH);
+        refresh();
     }
 
     private void refresh() {
@@ -35,7 +37,8 @@ public class ApprovalStatPanel extends BasePanel {//声明类，继承 BasePanel
 
         try {
             DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-            List<StatResultVO> list = statService.getApprovalRanking("2026-06");
+            List<StatResultVO> list = statService.getApprovalRanking(
+                java.time.LocalDate.now().getYear() + "-" + String.format("%02d", java.time.LocalDate.now().getMonthValue()));
             for (StatResultVO vo : list) {
                 if (vo.getValue() instanceof Number) {
                     dataset.addValue(((Number) vo.getValue()).doubleValue(), "审批次数", vo.getName());
@@ -46,6 +49,7 @@ public class ApprovalStatPanel extends BasePanel {//声明类，继承 BasePanel
                     "审批工作量统计", "审批人", "审批次数",
                     dataset
             );
+            configureChartFont(chart);
             ChartPanel chartPanel = new ChartPanel(chart);
             add(chartPanel, BorderLayout.CENTER);
         } catch (Exception e) {
@@ -54,6 +58,38 @@ public class ApprovalStatPanel extends BasePanel {//声明类，继承 BasePanel
 
         revalidate();
         repaint();
+    }
+
+    /** 设置JFreeChart中文字体，解决图表中文显示为方框的问题 */
+    public static void configureChartFont(JFreeChart chart) {
+        Font titleFont = new Font("Microsoft YaHei", Font.BOLD, 16);
+        Font labelFont = new Font("Microsoft YaHei", Font.BOLD, 14);
+        Font tickFont  = new Font("Microsoft YaHei", Font.PLAIN, 12);
+        Font legendFont = new Font("Microsoft YaHei", Font.PLAIN, 12);
+
+        // 标题
+        TextTitle title = chart.getTitle();
+        if (title != null) title.setFont(titleFont);
+
+        // 图例
+        if (chart.getLegend() != null) {
+            chart.getLegend().setItemFont(legendFont);
+        }
+
+        // 柱状图/折线图的坐标轴
+        if (chart.getPlot() instanceof CategoryPlot) {
+            CategoryPlot plot = (CategoryPlot) chart.getPlot();
+            plot.getDomainAxis().setLabelFont(labelFont);
+            plot.getDomainAxis().setTickLabelFont(tickFont);
+            plot.getRangeAxis().setLabelFont(labelFont);
+            plot.getRangeAxis().setTickLabelFont(tickFont);
+        }
+
+        // 饼图
+        if (chart.getPlot() instanceof PiePlot) {
+            PiePlot plot = (PiePlot) chart.getPlot();
+            plot.setLabelFont(tickFont);
+        }
     }
 
     // ===== 测试入口 =====

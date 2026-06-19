@@ -74,9 +74,11 @@ public class AttendanceService {
         try {
             // 第一层防重复：上班只能打一次 IN，下班只能打一次 OUT
             LocalDateTime todayStart = LocalDate.now().atStartOfDay();
-            AttendanceDao dao = MyBatisUtil.openSession().getMapper(AttendanceDao.class);
-            List<ClockRecord> todayRecords = 
-                    dao.findByUserIdAndDate(userId, todayStart,todayStart.plusDays(1));
+            List<ClockRecord> todayRecords;
+            try (SqlSession ss = MyBatisUtil.openSession()) {
+                todayRecords = ss.getMapper(AttendanceDao.class)
+                        .findByUserIdAndDate(userId, todayStart, todayStart.plusDays(1));
+            }
 
             boolean hasIn  = todayRecords.stream().anyMatch(r -> "IN".equals(r.getClockType()));
             boolean hasOut = todayRecords.stream().anyMatch(r -> "OUT".equals(r.getClockType()));

@@ -3,30 +3,51 @@ package com.oa.statistics.service;
 import com.oa.statistics.dao.StatDao;
 import com.oa.statistics.entity.StatResultVO;
 import com.oa.common.MyBatisUtil;
+import org.apache.ibatis.session.SqlSession;
 import java.util.List;
 import java.util.Map;
 
 public class StatService {
 
-    private StatDao getDao() { return MyBatisUtil.openSession().getMapper(StatDao.class); }
+    public Map<String, Object> getOverview() {
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            return s.getMapper(StatDao.class).getOverviewStats();
+        }
+    }
 
-    public Map<String, Object> getOverview() { return getDao().getOverviewStats(); }
-
-    public List<StatResultVO> getApprovalRanking(String month) { return getDao().getApprovalEfficiencyRanking(month); }
+    public List<StatResultVO> getApprovalRanking(String month) {
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            return s.getMapper(StatDao.class).getApprovalEfficiencyRanking(month);
+        }
+    }
 
     public List<StatResultVO> getAttendanceComparison(int year, int month) {
-        return getDao().getDeptAttendanceComparison(year, month);
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            return s.getMapper(StatDao.class).getDeptAttendanceComparison(year, month);
+        }
     }
 
     public List<StatResultVO> getLeaveDistribution(int year, int month) {
-        return getDao().getLeaveTypeDistribution(year, month);
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            return s.getMapper(StatDao.class).getLeaveTypeDistribution(year, month);
+        }
     }
 
-    public List<StatResultVO> getApprovalTrend(int year) { return getDao().getMonthlyApprovalTrend(year); }
+    public List<StatResultVO> getApprovalTrend(int year) {
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            return s.getMapper(StatDao.class).getMonthlyApprovalTrend(year);
+        }
+    }
 
-    public List<StatResultVO> getDeptUserCount() { return getDao().getDeptUserCount(); }
+    public List<StatResultVO> getDeptUserCount() {
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            return s.getMapper(StatDao.class).getDeptUserCount();
+        }
+    }
 
-                    // ===== 面板需要但 Service 未暴露的方法 =====
-    public java.util.Map<String, Object> getPendingTaskStats() { return getDao().getPendingTaskStats(); }
-
+    public Map<String, Object> getPendingTaskStats() {
+        try (SqlSession s = MyBatisUtil.openSession()) {
+            return s.getMapper(StatDao.class).getPendingTaskStats();
+        }
+    }
 }

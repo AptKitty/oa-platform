@@ -23,11 +23,13 @@
                 <property name="url" value="jdbc:mysql://localhost:3306/oa_platform?useSSL=false&amp;serverTimezone=Asia/Shanghai&amp;characterEncoding=UTF-8&amp;useUnicode=true"/>
                 <property name="username" value="root"/>
                 <property name="password" value="root"/>
-                <property name="poolMaximumActiveConnections" value="20"/>
+                <property name="poolMaximumActiveConnections" value="30"/>
                 <property name="poolMaximumIdleConnections" value="10"/>
-                <property name="poolTimeToWait" value="20000"/>
+                <property name="poolTimeToWait" value="10000"/>
                 <property name="poolPingEnabled" value="true"/>
                 <property name="poolPingQuery" value="SELECT 1"/>
+                <property name="poolPingConnectionsNotUsedFor" value="60000"/>
+                <property name="poolMaximumCheckoutTime" value="15000"/>
             </dataSource>
         </environment>
     </environments>

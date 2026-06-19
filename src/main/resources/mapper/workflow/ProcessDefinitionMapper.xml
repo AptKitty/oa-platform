@@ -90,4 +90,9 @@
     <delete id="deleteNodesByDefId">
         delete from wf_process_node where def_id = #{defId}
     </delete>
+    <!-- ????ID????????????????????? -->
+    <select id="findByTemplateId" resultMap="ProcessDefinitionMap">
+        select * from wf_process_definition where template_id = #{templateId}
+    </select>
+
 </mapper>

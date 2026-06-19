@@ -452,7 +452,56 @@ public class WorkflowService {
         }
     }
 
+    
     /**
+     * Revoke application
+     */
+    public void revoke(Long instanceId, Long applicantId) {
+        SqlSession session = MyBatisUtil.openSession(false);
+        try {
+            ProcessInstanceDao instanceDao = session.getMapper(ProcessInstanceDao.class);
+            TaskDao taskDao = session.getMapper(TaskDao.class);
+
+            ProcessInstance instance = instanceDao.findById(instanceId);
+            if (instance == null) throw new BusinessException("Application not found");
+            if (!instance.getApplicantId().equals(applicantId)) throw new BusinessException("Can only revoke own applications");
+
+            if (!Constants.APPROVAL_STATUS_PENDING.equals(instance.getStatus())
+                && !Constants.APPROVAL_STATUS_APPROVING.equals(instance.getStatus())) {
+                throw new BusinessException("Current status does not allow revocation");
+            }
+
+            instanceDao.updateStatus(instanceId, Constants.APPROVAL_STATUS_CANCELLED);
+
+            List<Task> tasks = taskDao.findByInstanceId(instanceId);
+            for (Task t : tasks) {
+                if ("PENDING".equals(t.getStatus())) {
+                    taskDao.updateStatus(t.getId(), "CANCELLED", LocalDateTime.now());
+                }
+            }
+
+            ApprovalRecord record = new ApprovalRecord();
+            record.setInstanceId(instanceId);
+            record.setNodeId(0L);  // ?????????
+            record.setNodeName("Applicant Revoke");
+            record.setApproverId(applicantId);
+            record.setAction("REVOKE");
+            record.setComment("Applicant voluntarily revoked");
+            instanceDao.insertApprovalRecord(record);
+
+            session.commit();
+        } catch (BusinessException e) {
+            session.rollback();
+            throw e;
+        } catch (Exception e) {
+            session.rollback();
+            throw new BusinessException("Revoke failed: " + e.getMessage());
+        } finally {
+            session.close();
+        }
+    }
+
+/**
      * 查询某人发起的审批申请列表(分页)
      * @param userId   申请人ID
      * @param status   状态筛选(可为null查全部)

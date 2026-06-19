@@ -52,9 +52,15 @@ public final class Constants {
     public static int ATTENDANCE_END_MINUTE = 0;
 
     // ===== 当前登录用户（线程绑定） =====
+    private static final ThreadLocal<Long> DRAFT_INSTANCE_ID = new ThreadLocal<>();
+
     private static final ThreadLocal<Long> CURRENT_USER = new ThreadLocal<>();
     private static final ThreadLocal<String> CURRENT_USERNAME = new ThreadLocal<>();
     private static final ThreadLocal<Long> CURRENT_DEPT_ID = new ThreadLocal<>();
+
+    public static void setDraftInstanceId(Long id) { DRAFT_INSTANCE_ID.set(id); }
+    public static Long getDraftInstanceId() { return DRAFT_INSTANCE_ID.get(); }
+    public static void clearDraftInstanceId() { DRAFT_INSTANCE_ID.remove(); }
 
     public static void setCurrentUser(Long userId, String username) {
         CURRENT_USER.set(userId);

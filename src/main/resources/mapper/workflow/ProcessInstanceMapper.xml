@@ -79,4 +79,8 @@
         update wf_process_instance set status = #{status}, update_time = now() where id = #{id}
     </update>
 
+    <delete id="deleteById">
+        delete from wf_process_instance where id = #{id}
+    </delete>
+
 </mapper>

@@ -121,9 +121,9 @@ public class MainFrame extends BaseFrame {
         addMenu(mb, "流程审批", new String[][]{
             {"发起申请", "APPLY", "WF_START"},
             {"我的审批", "APPROVAL", "WF_MY_APPROVAL"},
-            {"我的申请", "MY_APPLICATIONS", "WF_MY_APPLICATIONS"},
-            {"审批模板", "FORM_TEMPLATE", "WF_TEMPLATE"},
-            {"流程定义", "PROCESS_DEF", "WF_DEF"},
+            {"我的申请", "MY_APPLICATIONS", "MY_APPLICATIONS"},
+            {"审批模板", "FORM_TEMPLATE", "FORM_TEMPLATE"},
+            {"流程定义", "PROCESS_DEF", "WF_DEFINITION"},
         });
 
         addMenu(mb, "考勤管理", new String[][]{
@@ -134,7 +134,7 @@ public class MainFrame extends BaseFrame {
 
         addMenu(mb, "公告消息", new String[][]{
             {"公告列表", "NOTICE", "NOTICE_LIST"},
-            {"消息中心", "MESSAGE", "MSG_CENTER"},
+            {"消息中心", "MESSAGE", "NOTICE_MY_MSG"},
         });
 
         addMenu(mb, "日程任务", new String[][]{
@@ -151,8 +151,8 @@ public class MainFrame extends BaseFrame {
 
         addMenu(mb, "统计大屏", new String[][]{
             {"数据概览", "STATISTICS", "STAT_OVERVIEW"},
-            {"审批统计", "APPROVAL_STAT", "STAT_APPROVAL"},
-            {"考勤图表", "ATT_CHART", "STAT_ATTENDANCE"},
+            {"审批统计", "APPROVAL_STAT", "STAT_WF"},
+            {"考勤图表", "ATT_CHART", "STAT_ATT"},
             {"考勤汇总", "ATTENDANCE_STAT", "ATT_STAT"},
         });
 
@@ -160,7 +160,7 @@ public class MainFrame extends BaseFrame {
             {"用户管理", "SYSTEM", "USER_MANAGE"},
             {"部门管理", "DEPT_MANAGE", "DEPT_MANAGE"},
             {"角色权限", "ROLE_PERM", "ROLE_PERMISSION"},
-            {"数据导入", "IMPORT", "SYSTEM"},
+            {"数据导入", "IMPORT", "IMPORT"},
         });
 
         addMenu(mb, "即时通讯", new String[][]{
@@ -207,9 +207,9 @@ public class MainFrame extends BaseFrame {
             new String[][]{
                 {"发起申请", "APPLY", "WF_START"},
                 {"我的审批", "APPROVAL", "WF_MY_APPROVAL"},
-                {"我的申请", "MY_APPLICATIONS", "WF_MY_APPLICATIONS"},
-                {"审批模板", "FORM_TEMPLATE", "WF_TEMPLATE"},
-                {"流程定义", "PROCESS_DEF", "WF_DEF"},
+                {"我的申请", "MY_APPLICATIONS", "MY_APPLICATIONS"},
+                {"审批模板", "FORM_TEMPLATE", "FORM_TEMPLATE"},
+                {"流程定义", "PROCESS_DEF", "WF_DEFINITION"},
             });
 
         addGroup(sidebar, "考勤管理", false, fg, bg, font,
@@ -222,7 +222,7 @@ public class MainFrame extends BaseFrame {
         addGroup(sidebar, "公告消息", false, fg, bg, font,
             new String[][]{
                 {"公告列表", "NOTICE", "NOTICE_LIST"},
-                {"消息中心", "MESSAGE", "MSG_CENTER"},
+                {"消息中心", "MESSAGE", "NOTICE_MY_MSG"},
             });
 
         addGroup(sidebar, "日程任务", false, fg, bg, font,
@@ -242,8 +242,8 @@ public class MainFrame extends BaseFrame {
         addGroup(sidebar, "统计大屏", false, fg, bg, font,
             new String[][]{
                 {"数据概览", "STATISTICS", "STAT_OVERVIEW"},
-                {"审批统计", "APPROVAL_STAT", "STAT_APPROVAL"},
-                {"考勤图表", "ATT_CHART", "STAT_ATTENDANCE"},
+                {"审批统计", "APPROVAL_STAT", "STAT_WF"},
+                {"考勤图表", "ATT_CHART", "STAT_ATT"},
                 {"考勤汇总", "ATTENDANCE_STAT", "ATT_STAT"},
             });
 
@@ -252,7 +252,7 @@ public class MainFrame extends BaseFrame {
                 {"用户管理", "SYSTEM", "USER_MANAGE"},
                 {"部门管理", "DEPT_MANAGE", "DEPT_MANAGE"},
                 {"角色权限", "ROLE_PERM", "ROLE_PERMISSION"},
-                {"数据导入", "IMPORT", "SYSTEM"},
+                {"数据导入", "IMPORT", "IMPORT"},
             });
 
         addGroup(sidebar, "即时通讯", false, fg, bg, font,

@@ -1,19 +1,19 @@
 package com.oa.ui.panel;
 
-import com.oa.attendance.entity.LeaveRequest;
 import com.oa.workflow.service.WorkflowService;
 import com.oa.workflow.dao.ProcessDefinitionDao;
 import com.oa.workflow.entity.ProcessDefinition;
+import com.oa.workflow.entity.ProcessInstance;
 import com.oa.common.MyBatisUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oa.attendance.service.AttendanceService;
 
 import javax.swing.*;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerDateModel;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -35,9 +35,9 @@ public class LeavePanel extends BasePanel {
 
     // 表单组件
     private JComboBox<String> leaveTypeCombo; //请假类型下拉框
-    private JTextField startDateField;        //开始日期（yyyy-mm--dd）
+    private JSpinner startDateSpinner;         //开始日期选择器
     private JComboBox<String> startHourCombo; //开始时点(09:00/14:00)
-    private JTextField endDateField;          //结束日期
+    private JSpinner endDateSpinner;          //结束日期选择器
     private JComboBox<String> endHourCombo;   //结束时点（18：00/09：00）
     private JLabel durationLabel;             //计算出的天数
     private JLabel quotaLabel;                //剩余额度提示
@@ -89,9 +89,13 @@ public class LeavePanel extends BasePanel {
         fieldsPanel.add(new JLabel("开始时间："), gbc);
         gbc.gridx = 1;
         JPanel startPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        startDateField = new JTextField(LocalDate.now().toString(), 10);
-        startHourCombo = new JComboBox<>(new String[]{"09:00", "14:00"});
-        startPanel.add(startDateField);
+        // 日期选择器（日历样式）
+        SpinnerDateModel startModel = new SpinnerDateModel(
+            java.sql.Date.valueOf(LocalDate.now()), null, null, java.util.Calendar.DAY_OF_MONTH);
+        startDateSpinner = new JSpinner(startModel);
+        startDateSpinner.setEditor(new JSpinner.DateEditor(startDateSpinner, "yyyy-MM-dd"));
+        startHourCombo = new JComboBox<>(new String[]{"00:00","01:00","02:00","03:00","04:00","05:00","06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00"});
+        startPanel.add(startDateSpinner);
         startPanel.add(new JLabel("  "));
         startPanel.add(startHourCombo);
         fieldsPanel.add(startPanel, gbc);
@@ -101,9 +105,13 @@ public class LeavePanel extends BasePanel {
         fieldsPanel.add(new JLabel("结束时间："), gbc);
         gbc.gridx = 1;
         JPanel endPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        endDateField = new JTextField(LocalDate.now().toString(), 10);
-        endHourCombo = new JComboBox<>(new String[]{"18:00", "09:00"});
-        endPanel.add(endDateField);
+        // 日期选择器（日历样式）
+        SpinnerDateModel endModel = new SpinnerDateModel(
+            java.sql.Date.valueOf(LocalDate.now()), null, null, java.util.Calendar.DAY_OF_MONTH);
+        endDateSpinner = new JSpinner(endModel);
+        endDateSpinner.setEditor(new JSpinner.DateEditor(endDateSpinner, "yyyy-MM-dd"));
+        endHourCombo = new JComboBox<>(new String[]{"00:00","01:00","02:00","03:00","04:00","05:00","06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00"});
+        endPanel.add(endDateSpinner);
         endPanel.add(new JLabel("  "));
         endPanel.add(endHourCombo);
         fieldsPanel.add(endPanel, gbc);
@@ -174,8 +182,8 @@ public class LeavePanel extends BasePanel {
     /** 根据起止日期计算请假天数 */
     private void calcDuration() {
         try {
-            LocalDate start = LocalDate.parse(startDateField.getText());
-            LocalDate end   = LocalDate.parse(endDateField.getText());
+            LocalDate start = LocalDate.parse(((JSpinner.DateEditor)startDateSpinner.getEditor()).getTextField().getText());
+            LocalDate end   = LocalDate.parse(((JSpinner.DateEditor)endDateSpinner.getEditor()).getTextField().getText());
             if (end.isBefore(start)) {
                 showError("结束日期不能早于开始日期");
                 return;
@@ -212,8 +220,8 @@ public class LeavePanel extends BasePanel {
     private void doSubmit() {
         try {
             String leaveType = (String) leaveTypeCombo.getSelectedItem();
-            LocalDate startDate = LocalDate.parse(startDateField.getText());
-            LocalDate endDate   = LocalDate.parse(endDateField.getText());
+            LocalDate startDate = LocalDate.parse(((JSpinner.DateEditor)startDateSpinner.getEditor()).getTextField().getText());
+            LocalDate endDate   = LocalDate.parse(((JSpinner.DateEditor)endDateSpinner.getEditor()).getTextField().getText());
             String reason = reasonArea.getText().trim();
 
             // 前端校验
@@ -232,54 +240,80 @@ public class LeavePanel extends BasePanel {
             if (!confirm("确认申请 " + leaveType + " " + days + " 天？\n"
                     + startDate + " ~ " + endDate)) return;
 
-            // 构造实体
-            LeaveRequest request = new LeaveRequest();
-            request.setUserId(getCurrentUserId());
-            request.setLeaveType(leaveType);
-            request.setStartTime(LocalDateTime.of(startDate, LocalTime.of(9, 0)));
-            request.setEndTime(LocalDateTime.of(endDate, LocalTime.of(18, 0)));
-            request.setDuration((double) days);
-            request.setReason(reason);
-            request.setInstanceId(0L);  // 占位：后续联调审批流时替换为实际 instanceId
+            // 构建表单JSON（与ApplyPanel格式一致，走审批引擎）
+            java.util.Map<String, String> formValues = new java.util.LinkedHashMap<>();
+            formValues.put("leaveType", leaveType);
+            formValues.put("startDate", startDate.toString());
+            formValues.put("endDate", endDate.toString());
+            formValues.put("days", String.valueOf(days));
+            formValues.put("reason", reason);
+            String formDataJson = new ObjectMapper().writeValueAsString(formValues);
 
-            // 提交（Service 内做额度+冲突校验）
-            attendanceService.applyLeave(request);
+            // 查找请假审批流程定义
+            ProcessDefinitionDao defDao = MyBatisUtil.openSession().getMapper(ProcessDefinitionDao.class);
+            ProcessDefinition leaveDef = defDao.findByTemplateId(1L);  // 模板ID=1 是请假
+            if (leaveDef == null) {
+                showError("未找到请假审批流程定义，请联系管理员");
+                return;
+            }
 
-            showInfo("请假申请提交成功！");
+            // 提交到审批引擎（走完整审批链：部门经理->总监->HR抄送）
+            new WorkflowService().submitProcess(leaveDef.getId(), getCurrentUserId(), formDataJson);
+
+            showInfo("请假申请已提交，请等待审批");
             clearForm();
             loadQuota();
             loadHistory();
         } catch (Exception e) {
             showError("提交失败：" + e.getMessage());
         }
-    }
-
-    /** 加载历史请假记录到表格 */
+    }/** 加载历史请假记录到表格 */
     private void loadHistory() {
         try {
-            List<LeaveRequest> records =
-                    attendanceService.getLeaveHistory(getCurrentUserId(), 1, 50);
+            // 查询请假相关的流程实例（走审批引擎的记录）
+            List<ProcessInstance> instances =
+                    new WorkflowService().getMyApplications(getCurrentUserId(), null, 1, 50);
             historyModel.setRowCount(0);
-            for (LeaveRequest r : records) {
+            for (ProcessInstance pi : instances) {
+                // 只显示请假模板的申请（templateId=1）
+                if (pi.getTemplateId() == null || pi.getTemplateId() != 1L) continue;
+
+                // 从formData JSON中解析请假详情
+                String leaveType = "";
+                String startDate = "";
+                String endDate = "";
+                String days = "";
+                String reason = "";
+                if (pi.getFormData() != null && !pi.getFormData().isEmpty()) {
+                    try {
+                        @SuppressWarnings("unchecked")
+                        java.util.Map<String, Object> formData =
+                            new ObjectMapper().readValue(pi.getFormData(), java.util.Map.class);
+                        leaveType = String.valueOf(formData.getOrDefault("leaveType", ""));
+                        startDate = String.valueOf(formData.getOrDefault("startDate", ""));
+                        endDate = String.valueOf(formData.getOrDefault("endDate", ""));
+                        days = String.valueOf(formData.getOrDefault("days", ""));
+                        reason = String.valueOf(formData.getOrDefault("reason", ""));
+                    } catch (Exception ignored) {}
+                }
+
                 String statusText;
-                switch (r.getStatus()) {
+                switch (pi.getStatus()) {
+                    case "DRAFT":     statusText = "草稿"; break;
                     case "PENDING":   statusText = "待审批"; break;
-                    case "APPROVED":  statusText = "已通过"; break;
+                    case "APPROVING": statusText = "审批中"; break;
+                    case "PASSED":    statusText = "已通过"; break;
                     case "REJECTED":  statusText = "已驳回"; break;
                     case "CANCELLED": statusText = "已取消"; break;
-                    default:          statusText = r.getStatus();
+                    default:          statusText = pi.getStatus();
                 }
                 historyModel.addRow(new Object[]{
-                        r.getId(),
-                        r.getLeaveType(),
-                        r.getStartTime() != null
-                                ? r.getStartTime().toLocalDate().toString() : "",
-                        r.getEndTime() != null
-                                ? r.getEndTime().toLocalDate().toString() : "",
-                        String.format("%.1f", r.getDuration()),
-                        r.getReason() != null && r.getReason().length() > 20
-                                ? r.getReason().substring(0, 20) + "..."   // 截断过长原因
-                                : r.getReason(),
+                        pi.getId(),
+                        leaveType,
+                        startDate,
+                        endDate,
+                        days,
+                        reason.length() > 20 ? reason.substring(0, 20) + "..." : reason,
                         statusText
                 });
             }
@@ -290,8 +324,8 @@ public class LeavePanel extends BasePanel {
 
     /** 提交成功后清空表单 */
     private void clearForm() {
-        startDateField.setText(LocalDate.now().toString());
-        endDateField.setText(LocalDate.now().toString());
+        startDateSpinner.setValue(java.sql.Date.valueOf(LocalDate.now()));
+        endDateSpinner.setValue(java.sql.Date.valueOf(LocalDate.now()));
         reasonArea.setText("");
         durationLabel.setText("0 天");
     }

@@ -20,4 +20,5 @@ public interface ProcessInstanceDao {
     int updateStatus(@Param("id") Long id, @Param("status") String status);
     int insertApprovalRecord(ApprovalRecord record);
     List<ApprovalRecord> findRecordsByInstanceId(Long instanceId);
+    int deleteById(Long id);
 }

@@ -139,7 +139,7 @@ public class ApplyPanel extends BasePanel {
                 com.oa.workflow.dao.ProcessInstanceDao instanceDao = 
                     com.oa.common.MyBatisUtil.openSession().getMapper(com.oa.workflow.dao.ProcessInstanceDao.class);
                 instanceDao.insert(instance);
-                showInfo("申请已提交，请等待审批");
+                showInfo("草稿已保存，可在我的申请中继续编辑");
             } catch (Exception ex) {
                 showError("提交失败: " + ex.getMessage());
             }
@@ -199,6 +199,7 @@ public class ApplyPanel extends BasePanel {
         typeComboBox.addItem("请选择模板...");                               // (1) 占位提示
         FormTemplateDao dao = MyBatisUtil.openSession().getMapper(FormTemplateDao.class);
         for (FormTemplate template : dao.findAll()) {                      // (2) 查数据库
+            if ("LEAVE".equals(template.getTemplateCode())) continue;      // 跳过请假模板（统一走请假管理）
             typeComboBox.addItem(template.getTemplateName());              // (3) 加入下拉框
         }
     }

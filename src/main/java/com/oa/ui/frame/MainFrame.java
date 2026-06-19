@@ -190,10 +190,11 @@ public class MainFrame extends BaseFrame {
 
     // ==================== 折叠分组侧边栏 ====================
 
-    private JScrollPane createSidebar() {
-        Box sidebar = Box.createVerticalBox();
+    private JPanel createSidebar() {
+        JPanel sidebar = new JPanel();
+        sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
         sidebar.setBackground(new Color(45, 52, 63));
-        sidebar.setOpaque(true);
+        sidebar.setPreferredSize(new Dimension(210, 0));
 
         Color fg = new Color(200, 200, 200);
         Color bg = new Color(45, 52, 63);
@@ -259,15 +260,10 @@ public class MainFrame extends BaseFrame {
                 {"聊天窗口", "IM", "IM_CHAT"},
             });
 
-        JScrollPane scrollPane = new JScrollPane(sidebar);
-        scrollPane.setBorder(null);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(20);
-        return scrollPane;
+        return sidebar;
     }
 
-    private void addGroup(java.awt.Container parent, String title, boolean expanded,
+    private void addGroup(JPanel parent, String title, boolean expanded,
                           Color fg, Color bg, Font font, String[][] items) {
         List<String[]> visibleItems = new ArrayList<>();
         for (String[] item : items) {
@@ -315,16 +311,6 @@ public class MainFrame extends BaseFrame {
             headerBtn.setText((nowVisible ? "- " : "+ ") + title);
             parent.revalidate();
             parent.repaint();
-            // 通知祖先 JScrollPane 重新计算滚动条
-            Container c = parent.getParent();
-            while (c != null) {
-                if (c instanceof JScrollPane) {
-                    c.revalidate();
-                    c.repaint();
-                    break;
-                }
-                c = c.getParent();
-            }
         });
 
         parent.add(headerBtn);

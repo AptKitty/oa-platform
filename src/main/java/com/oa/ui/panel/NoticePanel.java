@@ -99,7 +99,7 @@ public class NoticePanel extends BasePanel {
                         n.getCreateTime() != null
                                 ? n.getCreateTime().toLocalDate().toString() : "",
                         readCount, unreadCount,
-                        n.getIsTop() != null && n.getIsTop() == 1 ? "📌" : ""
+                        n.getIsTop() != null && n.getIsTop() == 1 ? "[顶]" : ""
                 });
             }
         } catch (Exception e) {

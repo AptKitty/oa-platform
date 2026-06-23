@@ -88,6 +88,7 @@ public class MainFrame extends BaseFrame {
 
         leftBar.add(new JLabel("当前用户: " + currentUsername));
         bar.add(leftBar, BorderLayout.WEST);
+		bar.add(new JLabel("作者：陈健聪  学号：2531020130218", SwingConstants.CENTER), BorderLayout.CENTER);
 
         // 右侧：退出登录
         JPanel rightBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 2));

@@ -13,6 +13,8 @@ public abstract class BasePanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     }
 
+        protected void addAuthorLabel() { JLabel al = new JLabel("作者：陈健聪  学号：2531020130218", SwingConstants.CENTER); al.setForeground(new Color(128, 128, 128)); al.setFont(new Font("Microsoft YaHei", Font.PLAIN, 11)); add(al, BorderLayout.SOUTH); }
+
     public void setCurrentUser(Long userId, String username) {
         Constants.setCurrentUser(userId, username);
     }

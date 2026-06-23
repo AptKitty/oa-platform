@@ -1,0 +1,471 @@
+﻿============================================================
+  企业协同办公与流程审批系统（OA平台）
+  7 人 团 队 分 工 明 细
+  v1.0.0
+============================================================
+
+■ 项目概况
+  项目名称：企业协同办公与流程审批系统（OA平台）
+  作者：陈健聪  学号：2531020130218
+  技术栈：Java 8 + Swing + MyBatis + MySQL 8.0 + Maven
+  规模：97个Java源文件 / 20个Mapper XML / 33张数据库表 / 26个Swing面板
+
+■ 角色设计（5种）
+  ┌──────────┬──────────────────────────────────┐
+  │ 超级管理员 │ 组织架构维护、角色权限分配、系统审计  │
+  │ 部门主管  │ 审批下级申请、部门人员管理           │
+  │ 普通员工  │ 发起申请、考勤打卡、查看公告         │
+  │ HR       │ 考勤统计、员工档案、假期管理          │
+  │ 行政     │ 会议室/资产/用车管理、公告发布        │
+  └──────────┴──────────────────────────────────┘
+
+■ 核心功能模块（7大模块）
+  1. 组织架构与权限管理（RBAC）
+  2. 可配置流程审批引擎（核心难点）★
+  3. 考勤管理子系统
+  4. 公告与消息通知
+  5. 日程与任务管理
+  6. 行政管理（会议室/资产/用车）
+  7. 数据统计大屏
+
+============================================================
+  成 员 1（组长）— 流程审批引擎核心 ★最难★
+============================================================
+
+【职责】可配置流程审批引擎 + 公共基础设施 + 核心审批面板
+
+——公共基础设施（7个）————————————————
+  BaseEntity         公共实体基类
+  MyBatisUtil        SqlSessionFactory 单例
+  Constants          常量定义（菜单Key、审批状态等）
+  MD5Util            MD5密码加密
+  ExportUtil         通用Excel导出工具
+  BusinessException  业务异常类
+  PageResult         分页结果封装
+
+——审批实体类（7个）——————————————————
+  FormTemplate       申请表单模板
+  FormField          表单字段定义
+  ProcessDefinition  审批流程定义
+  ProcessNode        流程审批节点
+  ProcessInstance    审批流程实例
+  Task               审批任务
+  ApprovalRecord     审批操作记录
+
+——审批 DAO + Mapper XML（5组）—————————
+  FormTemplateDao.java     →  FormTemplateMapper.xml
+  ProcessDefinitionDao.java →  ProcessDefinitionMapper.xml
+  ProcessInstanceDao.java   →  ProcessInstanceMapper.xml
+  TaskDao.java             →  TaskMapper.xml
+  ApprovalRecordMapper.xml  （审批记录XML）
+
+——审批核心服务————————————————————
+  WorkflowService.java（668行）
+    · submitProcess()      提交申请（含会签/或签/条件分支判定）
+    · approve()            审批通过（含POST节点处理）
+    · reject()             审批驳回（含撤销后续节点）
+    · revoke()             撤销申请
+    · evaluateCondition()  条件分支求值
+    · handlePostApproval() 审批后置处理（考勤联动等）
+
+——审批核心面板（3个）——————————————
+  ApplyPanel             发起申请面板（动态表单渲染 + 提交）
+  ApprovalPanel          待审批列表面板（审批流程图 + 通过/驳回操作）
+  MyApplicationPanel     我的申请面板（状态追踪 + 撤销）
+
+【文件清单】（约23个Java文件）
+  src/main/java/com/oa/common/BaseEntity.java
+  src/main/java/com/oa/common/MyBatisUtil.java
+  src/main/java/com/oa/common/Constants.java
+  src/main/java/com/oa/common/MD5Util.java
+  src/main/java/com/oa/common/ExportUtil.java
+  src/main/java/com/oa/common/BusinessException.java
+  src/main/java/com/oa/common/PageResult.java
+  src/main/java/com/oa/common/Result.java
+  src/main/java/com/oa/workflow/entity/FormTemplate.java
+  src/main/java/com/oa/workflow/entity/FormField.java
+  src/main/java/com/oa/workflow/entity/ProcessDefinition.java
+  src/main/java/com/oa/workflow/entity/ProcessNode.java
+  src/main/java/com/oa/workflow/entity/ProcessInstance.java
+  src/main/java/com/oa/workflow/entity/Task.java
+  src/main/java/com/oa/workflow/entity/ApprovalRecord.java
+  src/main/java/com/oa/workflow/dao/FormTemplateDao.java
+  src/main/java/com/oa/workflow/dao/ProcessDefinitionDao.java
+  src/main/java/com/oa/workflow/dao/ProcessInstanceDao.java
+  src/main/java/com/oa/workflow/dao/TaskDao.java
+  src/main/java/com/oa/workflow/service/WorkflowService.java
+  src/main/resources/mapper/workflow/FormTemplateMapper.xml
+  src/main/resources/mapper/workflow/ProcessDefinitionMapper.xml
+  src/main/resources/mapper/workflow/ProcessInstanceMapper.xml
+  src/main/resources/mapper/workflow/TaskMapper.xml
+  src/main/resources/mapper/workflow/ApprovalRecordMapper.xml
+  src/main/java/com/oa/ui/panel/ApplyPanel.java
+  src/main/java/com/oa/ui/panel/ApprovalPanel.java
+  src/main/java/com/oa/ui/panel/MyApplicationPanel.java
+
+============================================================
+  成 员 2 — 系统管理模块 + 主界面框架
+============================================================
+
+【职责】组织架构维护、RBAC权限模型、主界面框架、系统管理面板
+
+——系统实体类（5个）————————————————
+  User       用户（账号/密码/姓名/部门/岗位/上级/状态）
+  Dept       部门（树形组织结构）
+  Role       角色（超级管理员/部门主管/普通员工/HR/行政）
+  Menu       菜单（侧边栏菜单项 + 权限Key）
+  AuditLog   审计日志
+
+——系统服务（5个）——————————————————
+  UserService        登录验证、用户CRUD、角色分配、分页查询
+  DeptService        部门增删改查、树形结构构建
+  RoleService        角色管理、角色-用户关联
+  MenuService        菜单管理、角色-菜单权限分配
+  AuditLogService    审计日志记录和查询
+
+——系统 DAO + Mapper XML（5组）—————————
+  UserDao.java     →  UserMapper.xml
+  DeptDao.java     →  DeptMapper.xml
+  RoleDao.java     →  RoleMapper.xml
+  MenuDao.java     →  MenuMapper.xml
+  AuditLogDao.java →  AuditLogMapper.xml
+
+——主界面框架（4个）————————————————
+  LoginFrame           登录窗口（用户名/密码/登录按钮/作者信息）
+  MainFrame            主窗口（顶部栏 + 侧边栏菜单树 + 右侧面板区域）
+  BasePanel            所有面板的公共基类（当前用户/工具方法）
+  BaseFrame            窗口基类
+
+——系统管理面板（6个）——————————————
+  UserManagePanel      用户管理（CRUD + 角色分配 + 分页 + Excel导入导出）
+  DeptManagePanel      部门管理（树形组织结构 + 增删改）
+  RolePermissionPanel  角色权限分配（角色选择 + 菜单权限树）
+  WelcomePanel         工作台首页（欢迎信息 + 待办统计 + 快捷入口）
+  ProcessDefPanel      审批链配置（流程定义 + 节点管理）
+  FormTemplatePanel    表单模板管理（字段配置）
+
+【文件清单】（约20个Java文件）
+  src/main/java/com/oa/system/entity/User.java
+  src/main/java/com/oa/system/entity/Dept.java
+  src/main/java/com/oa/system/entity/Role.java
+  src/main/java/com/oa/system/entity/Menu.java
+  src/main/java/com/oa/system/entity/AuditLog.java
+  src/main/java/com/oa/system/service/UserService.java
+  src/main/java/com/oa/system/service/DeptService.java
+  src/main/java/com/oa/system/service/RoleService.java
+  src/main/java/com/oa/system/service/MenuService.java
+  src/main/java/com/oa/system/service/AuditLogService.java
+  src/main/java/com/oa/system/dao/UserDao.java
+  src/main/java/com/oa/system/dao/DeptDao.java
+  src/main/java/com/oa/system/dao/RoleDao.java
+  src/main/java/com/oa/system/dao/MenuDao.java
+  src/main/java/com/oa/system/dao/AuditLogDao.java
+  src/main/resources/mapper/system/UserMapper.xml
+  src/main/resources/mapper/system/DeptMapper.xml
+  src/main/resources/mapper/system/RoleMapper.xml
+  src/main/resources/mapper/system/MenuMapper.xml
+  src/main/resources/mapper/system/AuditLogMapper.xml
+  src/main/java/com/oa/ui/frame/LoginFrame.java
+  src/main/java/com/oa/ui/frame/MainFrame.java
+  src/main/java/com/oa/ui/frame/BaseFrame.java
+  src/main/java/com/oa/ui/panel/BasePanel.java
+  src/main/java/com/oa/ui/panel/UserManagePanel.java
+  src/main/java/com/oa/ui/panel/DeptManagePanel.java
+  src/main/java/com/oa/ui/panel/RolePermissionPanel.java
+  src/main/java/com/oa/ui/panel/WelcomePanel.java
+  src/main/java/com/oa/ui/panel/ProcessDefPanel.java
+  src/main/java/com/oa/ui/panel/FormTemplatePanel.java
+
+============================================================
+  成 员 3 — 考勤管理子系统
+============================================================
+
+【职责】打卡、请假申请、考勤统计、月度汇总、Excel导出
+
+——考勤实体类（2个）————————————————
+  ClockRecord     打卡记录（用户ID/打卡类型/时间/IP/迟到早退判定）
+  LeaveRequest    请假申请（类型/起止时间/天数/审批状态/额度扣减）
+
+——考勤服务————————————————————
+  AttendanceService
+    · clock()                 上班/下班打卡（防重复提交、记录IP）
+    · getTodayClockStatus()   今日打卡状态查询
+    · getMonthlyStat()        月度考勤汇总（出勤/迟到/早退/旷工）
+    · evaluateLateEarly()     迟到早退判定（>9:00迟到/<18:00早退）
+    · processLeaveDeduction() 请假审批通过后自动扣减额度
+    · getLeaveQuota()         查询剩余假期额度
+
+——考勤 DAO + Mapper XML（2组）—————————
+  AttendanceDao.java →  AttendanceMapper.xml
+  LeaveDao.java      →  LeaveMapper.xml
+
+——考勤面板（4个）————————————————
+  ClockPanel                 上下班打卡面板（打卡按钮+最近7天记录）
+  LeavePanel                 请假申请面板（类型/起止/天数/关联审批流）
+  AttendanceStatPanel        月度考勤汇总表（全员统计+个人明细+Excel导出）
+  AttendanceStatChartPanel   考勤图表（部门出勤对比柱状图+请假类型饼图）
+
+【文件清单】（约8个Java文件）
+  src/main/java/com/oa/attendance/entity/ClockRecord.java
+  src/main/java/com/oa/attendance/entity/LeaveRequest.java
+  src/main/java/com/oa/attendance/service/AttendanceService.java
+  src/main/java/com/oa/attendance/dao/AttendanceDao.java
+  src/main/java/com/oa/attendance/dao/LeaveDao.java
+  src/main/resources/mapper/attendance/AttendanceMapper.xml
+  src/main/resources/mapper/attendance/LeaveMapper.xml
+  src/main/java/com/oa/ui/panel/ClockPanel.java
+  src/main/java/com/oa/ui/panel/LeavePanel.java
+  src/main/java/com/oa/ui/panel/AttendanceStatPanel.java
+  src/main/java/com/oa/ui/panel/AttendanceStatChartPanel.java
+
+============================================================
+  成 员 4 — 公告与消息通知模块
+============================================================
+
+【职责】公告发布（富文本）、已读/未读追踪、站内消息中心
+
+——公告实体类（2个）————————————————
+  Notice        公告（标题/内容HTML/发布人/定时发布时间/置顶/附件路径）
+  Message       站内消息（发送者/接收者/内容/已读标记/关联类型）
+
+——公告服务（2个）————————————————
+  NoticeService
+    · publish()          发布公告（支持富文本HTML内容）
+    · activateScheduled() 定时发布激活
+    · markRead()         标记已读
+    · getReadStatus()    已读/未读人员列表（精确到人）
+    · listPage()         分页公告列表（置顶优先）
+  MessageService
+    · send()             发送消息
+    · getInbox()         收件箱（分页）
+    · markAsRead()       标记已读
+    · getUnreadCount()   未读计数
+
+——公告 DAO + Mapper XML（2组）—————————
+  NoticeDao.java  →  NoticeMapper.xml
+  MessageDao.java →  MessageMapper.xml
+
+——公告面板（2个）————————————————
+  NoticePanel        公告面板（列表+富文本编辑+附件上传+定时发布+置顶+已读追踪详情）
+  MessagePanel       消息中心面板（收件箱+筛选+已读/未读状态+标记已读）
+
+【文件清单】（约8个Java文件）
+  src/main/java/com/oa/notice/entity/Notice.java
+  src/main/java/com/oa/notice/entity/Message.java
+  src/main/java/com/oa/notice/service/NoticeService.java
+  src/main/java/com/oa/notice/service/MessageService.java
+  src/main/java/com/oa/notice/dao/NoticeDao.java
+  src/main/java/com/oa/notice/dao/MessageDao.java
+  src/main/resources/mapper/notice/NoticeMapper.xml
+  src/main/resources/mapper/notice/MessageMapper.xml
+  src/main/java/com/oa/ui/panel/NoticePanel.java
+  src/main/java/com/oa/ui/panel/MessagePanel.java
+
+============================================================
+  成 员 5 — 日程与任务管理模块
+============================================================
+
+【职责】个人日历、会议管理（冲突检测）、任务分配与跟踪
+
+——日程实体类（3个）————————————————
+  CalendarEvent   日历事件（标题/时间/类型/颜色/提醒）
+  Meeting         会议（发起人/参与人/会议室/议题/时间冲突检测）
+  Task            任务（负责人/截止日期/完成状态/优先级）
+
+——日程服务————————————————————
+  ScheduleService
+    · getEventsByDate()       按日期范围查询日历事件
+    · createEvent()           创建日程事件
+    · checkMeetingConflict()  会议时间冲突检测
+    · createMeeting()         发起会议（含参与人选择+冲突检测+通知发送）
+    · assignTask()            主管分配任务
+    · getMyTasks()            我的任务列表
+    · updateTaskStatus()      更新任务完成状态
+
+——日程 DAO + Mapper XML（1组）—————————
+  ScheduleDao.java →  ScheduleMapper.xml
+
+——日程面板（3个）————————————————
+  CalendarPanel      日历面板（月/周/日三视图切换 + 日程点选 + 新建/编辑/删除）
+  MeetingPanel       会议面板（发起会议 + 参与人选择 + 时间冲突自动检测 + 发送通知）
+  TaskPanel          任务面板（我的任务列表 + 主管分配任务 + 完成标记）
+
+【文件清单】（约8个Java文件）
+  src/main/java/com/oa/schedule/entity/CalendarEvent.java
+  src/main/java/com/oa/schedule/entity/Meeting.java
+  src/main/java/com/oa/schedule/entity/Task.java
+  src/main/java/com/oa/schedule/service/ScheduleService.java
+  src/main/java/com/oa/schedule/dao/ScheduleDao.java
+  src/main/resources/mapper/schedule/ScheduleMapper.xml
+  src/main/java/com/oa/ui/panel/CalendarPanel.java
+  src/main/java/com/oa/ui/panel/MeetingPanel.java
+  src/main/java/com/oa/ui/panel/TaskPanel.java
+
+============================================================
+  成 员 6 — 行政管理 + 统计大屏
+============================================================
+
+【职责】资产管理、会议室管理、用车管理 + 数据统计图表大屏
+
+——行政实体类（6个）————————————————
+  Asset             资产（名称/类型/状态/价值）
+  AssetRecord       资产操作记录（领用/归还/报废/时间/操作人）
+  MeetingRoom       会议室（名称/容量/设备/位置）
+  RoomBooking       会议室预约（预约人/时段/状态）
+  Vehicle           车辆（车牌/型号/状态/座位数）
+  VehicleRecord     用车记录（出车/归队/里程/驾驶员）
+
+——行政服务————————————————————
+  AdminService
+    · 资产管理：登记/领用/归还/报废 + 操作历史
+    · 会议室管理：CRUD + 预约 + 时段冲突检测 + 我的预约/取消
+    · 用车管理：车辆CRUD + 出车/归队 + 用车记录
+
+——行政 DAO + Mapper XML（3个XML）————————
+  AssetMapper.xml
+  MeetingRoomMapper.xml
+  VehicleMapper.xml
+
+——行政面板（3个）————————————————
+  AssetPanel           资产管理面板（列表+登记/领用/归还/报废+操作历史）
+  MeetingRoomPanel     会议室管理面板（列表+预约+冲突检测+我的预约/取消）
+  VehiclePanel         用车管理面板（列表+出车/归队+用车记录）
+
+——统计实体 + 服务 + DAO（4个）——————————
+  StatResultVO          统计结果VO
+  StatService           统计服务
+  StatDao               统计DAO
+  StatMapper.xml        统计Mapper
+
+——统计面板（3个）————————————————
+  StatOverviewPanel         统计大屏总览（概览卡片：用户总数/部门数/待审批数/今日提交数 + 待办事项实时统计）
+  ApprovalStatPanel         审批效率排行（本月审批效率排名柱状图 JFreeChart）
+  AttendanceStatChartPanel  考勤图表（部门出勤对比柱状图 + 请假分布饼图）
+
+【文件清单】（约16个Java文件）
+  src/main/java/com/oa/admin/entity/Asset.java
+  src/main/java/com/oa/admin/entity/AssetRecord.java
+  src/main/java/com/oa/admin/entity/MeetingRoom.java
+  src/main/java/com/oa/admin/entity/RoomBooking.java
+  src/main/java/com/oa/admin/entity/Vehicle.java
+  src/main/java/com/oa/admin/entity/VehicleRecord.java
+  src/main/java/com/oa/admin/service/AdminService.java
+  src/main/java/com/oa/admin/dao/AdminDao.java
+  src/main/resources/mapper/admin/AssetMapper.xml
+  src/main/resources/mapper/admin/MeetingRoomMapper.xml
+  src/main/resources/mapper/admin/VehicleMapper.xml
+  src/main/java/com/oa/ui/panel/AssetPanel.java
+  src/main/java/com/oa/ui/panel/MeetingRoomPanel.java
+  src/main/java/com/oa/ui/panel/VehiclePanel.java
+  src/main/java/com/oa/statistics/entity/StatResultVO.java
+  src/main/java/com/oa/statistics/service/StatService.java
+  src/main/java/com/oa/statistics/dao/StatDao.java
+  src/main/resources/mapper/statistics/StatMapper.xml
+  src/main/java/com/oa/ui/panel/StatOverviewPanel.java
+  src/main/java/com/oa/ui/panel/ApprovalStatPanel.java
+
+============================================================
+  成 员 7 — 即时通讯 + 数据导入导出 + 数据库设计 + 整合测试 + 文档打包
+============================================================
+
+【职责】即时通讯（WebSocket）、Excel批量导入、数据库设计与初始化、全系统联调、文档与发布
+
+——即时通讯（7个）————————————————
+  ImMessage             即时消息实体
+  Conversation          会话实体
+  ImDao                 聊天DAO
+  ImMapper.xml          聊天Mapper
+  ImService             聊天服务
+  ImWebSocketServer     WebSocket服务端（实时消息推送）
+  ImPanel               聊天面板（联系人列表 + 会话窗口）
+
+——Excel导入（1个）————————————————
+  ImportPanel           批量导入面板（上传Excel → 解析 → 批量写入用户表）
+
+——数据库设计（2个SQL文件）————————————————
+  schema.sql            33张表的DDL建表语句
+  test_data.sql         测试数据（18个用户 + 完整业务数据）
+
+——整合测试————————————————————
+  全系统联调测试（10个场景全覆盖）
+  场景1：admin 登录 → 系统管理菜单（用户/部门/角色权限）
+  场景2：lisi 登录 → 发起请假申请 → 动态表单 → 提交
+  场景3：zhangjl 登录 → 审批处理 → 通过
+  场景4：lisi 登录 → 我的申请 → 审批进度
+  场景5：lisi 登录 → 上班打卡 → 下班打卡
+  场景6：wanghr 登录 → 考勤统计 → Excel导出
+  场景7：zhaocw 登录 → 发布公告(富文本) → 已读追踪
+  场景8：lisi 登录 → 日程日历 → 新建日程
+  场景9：zhaocw 登录 → 资产管理 → 领用/归还
+  场景10：admin 登录 → 统计大屏
+
+——文档与发布————————————————————
+  README.txt            快速使用说明
+  设计说明书.txt         完整设计文档
+  启动系统.bat           Windows一键启动脚本
+  pom.xml               Maven配置（jar-with-dependencies打包）
+  OA办公系统.jar         Fat JAR发布包（31.4MB）
+
+【文件清单】（约10个Java文件）
+  src/main/java/com/oa/im/entity/ImMessage.java
+  src/main/java/com/oa/im/entity/Conversation.java
+  src/main/java/com/oa/im/dao/ImDao.java
+  src/main/java/com/oa/im/service/ImService.java
+  src/main/java/com/oa/im/websocket/ImWebSocketServer.java
+  src/main/resources/mapper/im/ImMapper.xml
+  src/main/java/com/oa/ui/panel/ImPanel.java
+  src/main/java/com/oa/ui/panel/ImportPanel.java
+  src/main/resources/schema.sql
+  src/main/resources/test_data.sql
+
+============================================================
+  数据库表归属（33张表 → 7人）
+============================================================
+
+  成员1（审批）：wf_form_template, wf_form_field, wf_process_definition,
+                 wf_process_node, wf_process_instance, wf_task, wf_approval_record
+                 （共7张）
+
+  成员2（系统）：sys_user, sys_dept, sys_role, sys_menu,
+                 sys_user_role, sys_role_menu, sys_audit_log
+                 （共7张）
+
+  成员3（考勤）：attendance_clock, attendance_leave
+                 （共2张）
+
+  成员4（公告）：oa_notice, oa_notice_read, oa_message
+                 （共3张）
+
+  成员5（日程）：schedule_event, schedule_meeting, schedule_task,
+                 schedule_meeting_user
+                 （共4张）
+
+  成员6（行政/统计）：admin_asset, admin_asset_record, admin_meeting_room,
+                      admin_room_booking, admin_vehicle, admin_vehicle_record
+                      （共6张）
+
+  成员7（IM）：im_conversation, im_message, im_conversation_user
+               （共3张）
+
+  公共表：sys_config（成员2维护）
+
+============================================================
+  工作量对比
+============================================================
+
+  ┌──────┬──────────────────────────────────┬──────┐
+  │ 成员 │            主要难点               │ 工作量│
+  ├──────┼──────────────────────────────────┼──────┤
+  │成员1 │ 审批引擎逻辑最复杂(668行核心)      │ ★★★★★ │
+  │成员2 │ 面板最多(10个), RBAC权限模型      │ ★★★★ │
+  │成员3 │ 打卡防重复/额度扣减联动           │ ★★★  │
+  │成员4 │ 富文本编辑/定时发布/已读追踪       │ ★★★  │
+  │成员5 │ 日历三视图/会议冲突检测           │ ★★★  │
+  │成员6 │ 表最多(6张行政表) + JFreeChart    │ ★★★  │
+  │成员7 │ 跨模块整合/WebSocket/数据库设计    │ ★★★  │
+  └──────┴──────────────────────────────────┴──────┘
+
+============================================================
+  文件编写：陈健聪（2531020130218）
+  日期：2026-06-22
+============================================================

@@ -59,7 +59,7 @@ public class LoginFrame extends BaseFrame {
 
         add(formPanel, BorderLayout.CENTER);
 
-        JLabel infoLabel = new JLabel("学号: ________  姓名: ________", SwingConstants.CENTER);
+        JLabel infoLabel = new JLabel("作者：陈健聪  学号：2531020130218", SwingConstants.CENTER);
         infoLabel.setForeground(Color.GRAY);
         add(infoLabel, BorderLayout.SOUTH);
     }

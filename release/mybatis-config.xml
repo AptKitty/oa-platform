@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <setting name="logImpl" value="SLF4J"/>
+    </settings>
+    <typeAliases>
+        <package name="com.oa.system.entity"/>
+        <package name="com.oa.workflow.entity"/>
+        <package name="com.oa.attendance.entity"/>
+        <package name="com.oa.notice.entity"/>
+        <package name="com.oa.admin.entity"/>
+        <package name="com.oa.statistics.entity"/>
+        <package name="com.oa.im.entity"/>
+    </typeAliases>
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://localhost:3306/oa_platform?useSSL=false&amp;serverTimezone=Asia/Shanghai&amp;characterEncoding=UTF-8&amp;useUnicode=true"/>
+                <property name="username" value="root"/>
+                <property name="password" value="root"/>
+                <property name="poolMaximumActiveConnections" value="30"/>
+                <property name="poolMaximumIdleConnections" value="10"/>
+                <property name="poolTimeToWait" value="10000"/>
+                <property name="poolPingEnabled" value="true"/>
+                <property name="poolPingQuery" value="SELECT 1"/>
+                <property name="poolPingConnectionsNotUsedFor" value="60000"/>
+                <property name="poolMaximumCheckoutTime" value="15000"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="mapper/system/UserMapper.xml"/>
+        <mapper resource="mapper/system/RoleMapper.xml"/>
+        <mapper resource="mapper/system/DeptMapper.xml"/>
+        <mapper resource="mapper/system/AuditLogMapper.xml"/>
+        <mapper resource="mapper/system/MenuMapper.xml"/>
+        <mapper resource="mapper/workflow/FormTemplateMapper.xml"/>
+        <mapper resource="mapper/workflow/ProcessDefinitionMapper.xml"/>
+        <mapper resource="mapper/workflow/ProcessInstanceMapper.xml"/>
+        <mapper resource="mapper/workflow/ApprovalRecordMapper.xml"/>
+        <mapper resource="mapper/workflow/TaskMapper.xml"/>
+        <mapper resource="mapper/attendance/AttendanceMapper.xml"/>
+        <mapper resource="mapper/attendance/LeaveMapper.xml"/>
+        <mapper resource="mapper/notice/NoticeMapper.xml"/>
+        <mapper resource="mapper/notice/MessageMapper.xml"/>
+        <mapper resource="mapper/schedule/ScheduleMapper.xml"/>
+        <mapper resource="mapper/admin/AssetMapper.xml"/>
+        <mapper resource="mapper/admin/MeetingRoomMapper.xml"/>
+        <mapper resource="mapper/im/ImMapper.xml"/>
+        <mapper resource="mapper/admin/VehicleMapper.xml"/>
+        <mapper resource="mapper/statistics/StatMapper.xml"/>
+    </mappers>
+</configuration>
